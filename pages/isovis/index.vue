@@ -17,11 +17,15 @@ the exact state of that page from the previous state.
     <!-- Navbar is at the top, controlling which views to show. -->
     <b-navbar toggleable="lg" type="dark" variant="dark" class="nav-fill w-100">
         <b-navbar-brand v-if="selectedView=='Welcome'">IsoVis</b-navbar-brand>
-        <b-navbar-brand v-if="selectedView=='Main'"><b-link @click="clearData" v-b-tooltip.hover.bottom="'Clear data and return to the home page'" style="color:white">IsoVis</b-link></b-navbar-brand>
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
         <b-form-input v-if="selectedView=='Main'" @keyup.enter="changeZoom" v-model="enteredZoom" placeholder="Zoom to coordinates (e.g. 15720442 - 15727968)" size="sm" style="width: 350px;"></b-form-input>
+        <b-form-group>
+            <b-form-input @keyup="searchGenes" @keyup.enter="checkInput" v-model="enteredGene" list="geneIds" class="mb-3" placeholder="Search: type gene name/id, then select and press enter"></b-form-input>
+            <b-form-datalist id="geneIds"></b-form-datalist>
+        </b-form-group>
         <b-button v-if="selectedView=='Main' && !$refs.componentMain.is_zoom_reset" @click="resetZoom" variant="warning" size="sm" class="ml-2" style="white-space: nowrap;">Reset zoom</b-button>
         <b-collapse id="nav-collapse" is-nav>
+
             <!-- Right aligned nav items -->
             <b-navbar-nav class="ml-auto">
                 <b-button @click="clearData" v-show="!isMainDataEmpty" variant="danger" size="sm" class="ml-2" style="white-space: nowrap;">Clear data and return to the home page</b-button>
