@@ -18,9 +18,11 @@ the exact state of that page from the previous state.
     <b-navbar toggleable="lg" type="dark" variant="dark" class="nav-fill w-100">
         <b-navbar-brand v-if="selectedView=='Welcome'">IsoVis</b-navbar-brand>
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
-        <b-form-input v-if="selectedView=='Main'" @keyup.enter="changeZoom" v-model="enteredZoom" placeholder="Zoom to coordinates (e.g. 15720442 - 15727968)" size="sm" style="width: 350px;"></b-form-input>
-        <b-form-group>
-            <b-form-input @keyup="searchGenes" @keyup.enter="checkInput" v-model="enteredGene" list="geneIds" class="mb-3" placeholder="Search: type gene name/id, then select and press enter"></b-form-input>
+        <b-form-group class="mb-0 mr-2">
+            <b-form-input v-if="selectedView=='Main'" @keyup.enter="changeZoom" v-model="enteredZoom" placeholder="Zoom to coordinates (e.g. 15720442 - 15727968)" class="mb-0" style="width: 400px;"></b-form-input>
+        </b-form-group>
+        <b-form-group class="mb-0">
+            <b-form-input @keyup="searchGenes" @keyup.enter="checkInput" v-model="enteredGene" list="geneIds" class="mb-0" placeholder="Search: type gene name/id, select, and hit enter" style="width: 400px;"></b-form-input>
             <b-form-datalist id="geneIds"></b-form-datalist>
         </b-form-group>
         <b-button v-if="selectedView=='Main' && !$refs.componentMain.is_zoom_reset" @click="resetZoom" variant="warning" size="sm" class="ml-2" style="white-space: nowrap;">Reset zoom</b-button>
@@ -28,9 +30,6 @@ the exact state of that page from the previous state.
 
             <!-- Right aligned nav items -->
             <b-navbar-nav class="ml-auto">
-                <b-button @click="clearData" v-show="!isMainDataEmpty" variant="danger" size="sm" class="ml-2" style="white-space: nowrap;">Clear data and return to the home page</b-button>
-                <b-button @click="downloadDemo" v-show="(!isMainDataEmpty) && isDemoDataShown" variant="secondary" size="sm" class="ml-2" style="white-space: nowrap;">Download demo data</b-button>
-                <b-button @click="modal.selectGene.show=true" v-show="!isMainDataEmpty && this.all_genes && this.all_genes.length > 1" variant="primary" size="sm" class="ml-2" style="white-space: nowrap;">Change selected gene</b-button>
                 <b-dropdown text="About" variant="dark" right class="ml-2">
                     <b-dropdown-item href="about/" target="_blank">About IsoVis</b-dropdown-item>
                     <b-dropdown-item @click="modal.changelog.show=true">Release notes</b-dropdown-item>
@@ -156,6 +155,7 @@ the exact state of that page from the previous state.
 import { PrimaryData, SecondaryData, RNAModifSitesData, RNAModifSitesLevelData } from '~/assets/data_parser';
 import { BButton, BCol, BCollapse, BDropdown, BDropdownItem, BForm, BFormDatalist, BFormFile, BFormGroup, BFormInput, BImg, BLink, BModal, BNavbar, BNavbarBrand, BNavbarNav, BNavbarToggle, BProgress, BProgressBar, BRow, BVModalPlugin, VBModal, VBTooltip } from 'bootstrap-vue';
 
+var mydata={};
 export default
 {
     components: {
@@ -273,7 +273,8 @@ export default
         // Since Main.vue is watching a change in mainData, it should update automatically and show the demo.
         async showDemo()
         {
-            let compressed = await fetch("/demo_data.json.gz").then(
+            // let compressed = await fetch("/demo_data.json.gz").then(
+            let compressed = await fetch("/out.json.gz").then(
                 res => res.blob()
             );
             let decompressor = new DecompressionStream("gzip");
@@ -282,11 +283,39 @@ export default
                 this.selectedView = 'Main';
 
                 // Add transcript ids to heatmap data
+                // console.log(data)
+                //console.log(JSON.parse(JSON.stringify(data)))
+                //console.log(data.secondaryData.transcriptOrder)
                 data.secondaryData.transcriptOrder = JSON.parse(JSON.stringify(data.primaryData.transcriptOrder));
-
                 this.mainData = {isoformData:data.primaryData, heatmapData:data.secondaryData, canonData:data.canonData, 
                     proteinData:data.proteinData, selectedGene:data.selectedGene, geneLabel:data.geneLabel, demoData:true, species:"Homo_sapiens", is_use_grch37: false};
             });
+        },
+
+        async handleLoadDataFromServer() {
+            try {
+                // Create File objects from the server-side files
+                const gtfResponse = await fetch('/aml_data.gtf');
+                const gtfBlob = await gtfResponse.blob();
+                const serverGtfFile = new File([gtfBlob], 'aml_data.gtf', { type: 'text/plain' });
+
+                const heatmapResponse = await fetch('/aml_data.txt');
+                const heatmapBlob = await heatmapResponse.blob();
+                const serverHeatmapFile = new File([heatmapBlob], 'aml_data.txt', { type: 'text/plain' });
+
+                // Set up the data objects
+                this.modal.uploadData.stackFile = serverGtfFile;
+                this.modal.uploadData.heatmapFile = serverHeatmapFile;
+
+                // Switch to Main view
+                this.selectedView = 'Main';
+
+                // Process the files
+                await this.handleFileUpload();
+            } catch (error) {
+                console.error('Error loading server data:', error);
+                this.$bvModal.msgBoxOk('Error loading data from server. Please try again or contact support.');
+            }
         },
 
         downloadDemo()
@@ -537,8 +566,14 @@ export default
             }
 
             // Read the stack file
-            let file = this.modal.uploadData.stackFile;
+            // this.model.uploadData.stackFile = "/idh1.gtf";
+            let file = this.modal.uploadData.stackFile; 
             let hfile = (this.modal.heatmapUploadData.heatmapFile) ? this.modal.heatmapUploadData.heatmapFile : this.modal.uploadData.heatmapFile;
+            // console.log(this.modal.uploadData.stackFile)
+            // let file = "/idh1.gtf"
+            // console.log("assigning file")
+            // console.log(file)
+            // let hfile = "/idh1.expr.txt"
             let rna_modif_file = this.modal.uploadData.rnaModifFile;
             let rna_modif_level_file = this.modal.uploadData.rnaModifLevelFile;
 
@@ -652,6 +687,11 @@ export default
             this.mainData = {isoformData:isoformData, heatmapData:heatmapData, rnaModifData:rnaModifData, rnaModifLevelData:rnaModifLevelData, canonData:{}, demoData:false, selectedGene:this.selectedGene, species:species, is_use_grch37: (this.is_use_grch37 && (species === "Homo_sapiens"))};
             this.modal.uploadData.show = false;
             this.selectedView = 'Main';
+            // uncomment this line to dump the json to the dev console in chrome:
+            // console.log(this)
+            console.log("data dump after load:")
+            console.log(JSON.parse(JSON.stringify(this.mainData)))
+
         },
 
         async handleHeatmapFileUpload()
@@ -741,6 +781,9 @@ export default
         });
         this.$root.$on('request_data_upload', () => {
             this.modal.uploadData.show = true;
+        });
+        this.$root.$on('load_data_from_server', () => {
+            this.handleLoadDataFromServer();
         });
         this.$root.$on('request_heatmap_data_upload', () => {
             this.modal.heatmapUploadData.show = true;

@@ -8,12 +8,11 @@
 <b-container>
     <b-row>
         <b-col>
-            <h1 class="text-center my-4" style="font-size: 50px;">IsoVis: Visualize alternative mRNA isoforms</h1>
+            <h1 class="text-center my-4" style="font-size: 50px;">AML isoform visualization with IsoVis</h1>
         </b-col>
     </b-row>
     <div class="text-center">
-        <b-button @click="requestDataUpload" class="m-1" size="lg" variant="warning">Upload data</b-button>
-        <b-button @click="requestDemo" class="m-1" size="lg" variant="warning">Show demo data</b-button>
+        <b-button @click="loadDataFromServer" class="m-1" size="lg" variant="warning">Load data</b-button>
         <b-button href="tutorial/" target="_blank" class="m-1" size="lg" variant="warning">IsoVis tutorial <b-icon-book aria-hidden="true"></b-icon-book></b-button>
     </div>
     <br>
@@ -138,6 +137,10 @@ export default
 
         requestDataUpload() {
             this.$root.$emit("request_data_upload");
+        },
+
+        loadDataFromServer() {
+            this.$root.$emit("load_data_from_server");
         },
 
         downloadFile(filename) {

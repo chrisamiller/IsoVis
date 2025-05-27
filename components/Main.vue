@@ -776,7 +776,7 @@ export default
             this.setShowHeatmapColumn(true);
             this.buildHeatmapComponent();
         },
-
+  
         onEnd(evt)
         {
             let orig_isoformlist = JSON.parse(JSON.stringify(this.mainData.isoformData.isoformList));
@@ -3269,7 +3269,7 @@ export default
             this.is_stack_toggled = false;
             this.is_heatmap_toggled = false;
 
-            this.is_demo_resize_done = (!this.mainData.demoData ? true : false);
+            this.is_demo_resize_done = false //(!this.mainData.demoData ? true : false);
             this.showCanonLoading = true;
 
             this.transcriptNames = {};
@@ -3318,8 +3318,8 @@ export default
             this.is_zoom_reset = true;
             this.setBaseAxis();
 
-            if (!this.mainData.demoData)
-                this.getTranscriptNames().then();
+            //if (!this.mainData.demoData)
+            this.getTranscriptNames().then();
             this.buildHeatmapComponent();
 
             this.setShowOrfs(false);
@@ -3339,31 +3339,31 @@ export default
 
             this.resizePage();
 
-            if (!this.mainData.demoData)
+            // if (!this.mainData.demoData)
+            // {
+            if (this.mainData.rnaModifData)
             {
-                if (this.mainData.rnaModifData)
-                {
-                    this.rna_modif_disabled = false;
-                    if (this.mainData.rnaModifLevelData)
-                        this.setShowRNAModifHeatmap(true);
-                    this.siteOrder = JSON.parse(JSON.stringify(this.mainData.rnaModifData.siteOrder));
-                    this.allSites = JSON.parse(JSON.stringify(this.mainData.rnaModifData.allSites));
-                    this.site_data = {siteOrder: JSON.parse(JSON.stringify(this.mainData.rnaModifData.siteOrder))};
-                }
+                this.rna_modif_disabled = false;
+                if (this.mainData.rnaModifLevelData)
+                    this.setShowRNAModifHeatmap(true);
+                this.siteOrder = JSON.parse(JSON.stringify(this.mainData.rnaModifData.siteOrder));
+                this.allSites = JSON.parse(JSON.stringify(this.mainData.rnaModifData.allSites));
+                this.site_data = {siteOrder: JSON.parse(JSON.stringify(this.mainData.rnaModifData.siteOrder))};
+            }
 
-                if (this.mainData.heatmapData)
-                    this.setShowIsoformHeatmap(true);
+            if (this.mainData.heatmapData)
+                this.setShowIsoformHeatmap(true);
 
-                if (this.mainData.heatmapData || (!this.rna_modif_disabled && this.mainData.rnaModifLevelData))
-                {
-                    this.setShowHeatmapColumn(true);
-                    this.resizePage();
-                }
+            if (this.mainData.heatmapData || (!this.rna_modif_disabled && this.mainData.rnaModifLevelData))
+            {
+                this.setShowHeatmapColumn(true);
+                this.resizePage();
+            }
 
-                let gene_id = this.mainData.selectedGene;
+            let gene_id = this.mainData.selectedGene;
 
-                this.isGeneOnEnsembl(gene_id).then();
-                this.getCanonData(gene_id).then(([canon_data, canon_id]) =>
+            this.isGeneOnEnsembl(gene_id).then();
+            this.getCanonData(gene_id).then(([canon_data, canon_id]) =>
                 {
                     if (Object.keys(canon_data).length != 0)
                     {
@@ -3383,58 +3383,60 @@ export default
                         this.getLabels(canon_id).then();
 
                     this.getORFs().then(() =>
-                    {
-                        if (canon_id != "")
                         {
-                            this.getAccession(canon_id).then((accession) =>
+                            if (canon_id != "")
                             {
-                                if (accession != "")
-                                {
-                                    this.getInterProSourceDB(accession).then();
-                                    this.getProteinData(accession, this.mainData.canonData).then((protein_data) =>
+                                this.getAccession(canon_id).then((accession) =>
                                     {
-                                        if (!protein_data)
+                                        if (accession != "")
                                         {
-                                            this.mainData.proteinData = new Object();
-                                            this.mainData.proteinData.gone = true;
+                                            this.getInterProSourceDB(accession).then();
+                                            this.getProteinData(accession, this.mainData.canonData).then((protein_data) =>
+                                                {
+                                                    if (!protein_data)
+                                                    {
+                                                        this.mainData.proteinData = new Object();
+                                                        this.mainData.proteinData.gone = true;
+                                                    }
+                                                    else
+                                                        this.mainData.proteinData = JSON.parse(JSON.stringify(protein_data));
+
+                                                    this.protein_ready = true;
+                                                    this.resizePage();
+                                                    this.buildProteinComponent();
+                                                });
                                         }
                                         else
-                                            this.mainData.proteinData = JSON.parse(JSON.stringify(protein_data));
-
-                                        this.protein_ready = true;
-                                        this.resizePage();
-                                        this.buildProteinComponent();
+                                            this.protein_disabled = true;
                                     });
-                                }
-                                else
-                                    this.protein_disabled = true;
-                            });
-                        }
-                        else
-                            this.protein_disabled = true;
-                    });
+                            }
+                            else
+                                this.protein_disabled = true;
+                        });
                 });
-            }
-            else
-            {
-                this.setShowIsoformHeatmap(true);
-                this.show_heatmap_column = true;
-                this.is_gene_on_ensembl = true;
-                this.showCanonLoading = false;
-                this.calculate_canon_mergedranges();
-                this.orfs_ready = true;
-                this.no_orfs = false;
-                this.no_user_orfs = false;
-                this.protein_ready = true;
-                this.transcriptNames = {"ENST00000375793": "PLEKHM2-201", "ENST00000375799": "PLEKHM2-202"};
-                this.transcript_names_ready = true;
-                this.labels.ensembl = "ENSP00000364956";
-                this.labels.uniprot = "Q8IWE5";
-                this.labels.uniparc = "UPI00001C1D9C";
-                this.labels.refseq = "NM_015164.4";
-                this.labels.interpro_source_database = "reviewed";
-                this.labels_ready = true;
-            }
+            console.log("dumping data after canon loading");
+            console.log(JSON.parse(JSON.stringify(this.mainData)));
+        // }
+            // else
+            // {
+            //     this.setShowIsoformHeatmap(true);
+            //     this.show_heatmap_column = true;
+            //     this.is_gene_on_ensembl = true;
+            //     this.showCanonLoading = false;
+            //     this.calculate_canon_mergedranges();
+            //     this.orfs_ready = true;
+            //     this.no_orfs = false;
+            //     this.no_user_orfs = false;
+            //     this.protein_ready = true;
+            //     this.transcriptNames = {"ENST00000375793": "PLEKHM2-201", "ENST00000375799": "PLEKHM2-202"};
+            //     this.transcript_names_ready = true;
+            //     this.labels.ensembl = "ENSP00000364956";
+            //     this.labels.uniprot = "Q8IWE5";
+            //     this.labels.uniparc = "UPI00001C1D9C";
+            //     this.labels.refseq = "NM_015164.4";
+            //     this.labels.interpro_source_database = "reviewed";
+            //     this.labels_ready = true;
+            // }
         }
     }
 }
