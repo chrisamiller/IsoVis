@@ -295,13 +295,19 @@ export default
         async handleLoadDataFromServer() {
             try {
                 // Create File objects from the server-side files
-                const gtfResponse = await fetch('/aml_data.gtf');
+                const gtfResponse = await fetch('/aml_data.gtf.gz');
                 const gtfBlob = await gtfResponse.blob();
-                const serverGtfFile = new File([gtfBlob], 'aml_data.gtf', { type: 'text/plain' });
+                const gtfDecompressor = new DecompressionStream("gzip");
+                const gtfDecompressedStream = gtfBlob.stream().pipeThrough(gtfDecompressor);
+                const gtfDecompressedBlob = await new Response(gtfDecompressedStream).blob();
+                const serverGtfFile = new File([gtfDecompressedBlob], 'aml_data.gtf', { type: 'text/plain' });
 
-                const heatmapResponse = await fetch('/aml_data.txt');
+                const heatmapResponse = await fetch('/aml_data.txt.gz');
                 const heatmapBlob = await heatmapResponse.blob();
-                const serverHeatmapFile = new File([heatmapBlob], 'aml_data.txt', { type: 'text/plain' });
+                const heatmapDecompressor = new DecompressionStream("gzip");
+                const heatmapDecompressedStream = heatmapBlob.stream().pipeThrough(heatmapDecompressor);
+                const heatmapDecompressedBlob = await new Response(heatmapDecompressedStream).blob();
+                const serverHeatmapFile = new File([heatmapDecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
 
                 // Set up the data objects
                 this.modal.uploadData.stackFile = serverGtfFile;
