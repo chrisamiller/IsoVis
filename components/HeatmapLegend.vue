@@ -160,11 +160,21 @@ export default {
 
                 for (let i = 0; i < num_samples; ++i)
                 {
-                    let sample = data[i];
-                    let sample_text_metrics = ctx.measureText(sample);
-                    let sample_text_height = sample_text_metrics.actualBoundingBoxAscent + sample_text_metrics.actualBoundingBoxDescent;
-                    let x_coord = -Math.round(cell_width * (i + 0.5)) + Math.round(sample_text_height / 2);
-                    ctx.fillText(sample, 9, x_coord);
+                    let label = "";
+                    if (i === 2) label = "CD34";
+                    else if (i === 12) label = "SRSF2";
+                    else if (i === 22) label = "U2AF1_S34F";                    
+                    else if (i === 26) label = "U2AF1_Q157P";                    
+                    else if (i === 28) label = "SF3B1";                    
+                    else if (i === 39) label = "OtherAML";                    
+                    
+                    if (label) {
+                        let sample_text_metrics = ctx.measureText(label);
+                        let sample_text_height = sample_text_metrics.actualBoundingBoxAscent + sample_text_metrics.actualBoundingBoxDescent;
+                        sample_text_height = sample_text_height*2;
+                        let x_coord = -Math.round(cell_width * (i + 0.5)) + Math.round(sample_text_height / 2);
+                        ctx.fillText(label, 9, x_coord);
+                    }
                 }
 
                 ctx.restore();
@@ -408,9 +418,18 @@ export default {
                 // Draw the sample names below the ticks
                 for (let i = 0; i < num_samples; ++i)
                 {
-                    let sample = data[i];
-                    let x_coord = Math.round(cell_width * (i + 0.5));
-                    svg += heatmap_legend_text(sample, x_coord, 9, font_size, "sans-serif");
+                    let label = "";
+                    if (i === 2) label = "CD34";  // Position 3 (0-based index 2)
+                    else if (i === 12) label = "SRSF2";
+                    else if (i === 22) label = "U2AF1_S34F";                    
+                    else if (i === 26) label = "U2AF1_Q157P";                    
+                    else if (i === 28) label = "SF3B1";                    
+                    else if (i === 39) label = "OtherAML";  
+                    
+                    if (label) {
+                        let x_coord = Math.round(cell_width * (i + 0.5));
+                        svg += heatmap_legend_text(label, x_coord, 9, font_size, "sans-serif");
+                    }
                 }
             }
 
