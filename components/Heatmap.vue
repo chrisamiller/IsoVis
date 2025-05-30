@@ -22,7 +22,12 @@ export default {
     data: () => {
         return {
             show_isoform_heatmap: true,
-            logTransform: false
+            logTransform: false,
+            columnDividers: [5, 20, 25, 27, 29], // Array of column indices before which to draw dividers (0-based)
+            customLabels: [
+                { text: "CD34", column: 3, fontSize: 24 },
+                { text: "SRSF2", column: 12, fontSize: 24 },
+            ]
         };
     },
 
@@ -69,6 +74,7 @@ export default {
             let transcripts = this.heatmapData.transcriptOrder.slice();
             let rowCount = transcripts.length;
             let height = rowCount * (cellDim + cellPad) - cellPad;
+            let labelHeight = 40; // Height reserved for labels
 
             // Create an array of uppercase transcripts so that case-insensitive comparison can be performed later
             let uppercase_transcripts = [...transcripts];
@@ -77,7 +83,7 @@ export default {
 
             d3.select("#heatmapDiv").append("canvas")
                 .attr("width", Math.ceil(width))
-                .attr("height", Math.ceil(height))
+                .attr("height", Math.ceil(height + labelHeight)) // Add space for labels
                 .attr("id", "heatmapCanvas");
             let canvas = document.getElementById("heatmapCanvas");
             let ctx = canvas.getContext("2d");
@@ -133,6 +139,26 @@ export default {
                     ctx.fillStyle = cell_colour;
                     ctx.fillRect(x, y, Math.ceil(cell_width), Math.ceil(cell_height));
                 }
+            }
+
+            // Draw white divider lines at specified column positions
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            for (let colIndex of this.columnDividers) {
+                let x = Math.round(cell_width * colIndex);
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            // Draw custom labels at specified positions
+            for (let label of this.customLabels) {
+                let x = Math.round(cell_width * label.column);
+                ctx.font = `bold ${label.fontSize}px sans-serif`; // Make labels bold
+                ctx.fillStyle = 'black'; // Change color to black for better visibility
+                ctx.textAlign = 'center';
+                ctx.fillText(label.text, x + cell_width/2, height + 30); // Position 30px below heatmap
             }
 
             // add tooltip
@@ -243,6 +269,7 @@ export default {
             let transcripts = this.heatmapData.transcriptOrder.slice();
             let rowCount = transcripts.length;
             let height = rowCount * (cellDim + cellPad) - cellPad;
+            let labelHeight = 40; // Height reserved for labels
 
             // Create an array of uppercase transcripts so that case-insensitive comparison can be performed later
             let uppercase_transcripts = [...transcripts];
@@ -250,7 +277,7 @@ export default {
                 uppercase_transcripts[i] = uppercase_transcripts[i].toUpperCase();
 
             width = Math.ceil(width);
-            height = Math.ceil(height);
+            height = Math.ceil(height + labelHeight);
 
             // Add background colour
             let svg = rect(0, 0, width, height, colour.invalid);
