@@ -56,12 +56,6 @@ export default {
             let padding = 16;
             let boundary = el.getBoundingClientRect();
             let width = boundary.width - 2 * padding;
-            let colour = {
-                heatmapLow: '#1170aa', // '#962705',
-                heatmapMid: '#fff8e6', // 'white',
-                heatmapHigh: '#fc7d0b',
-                invalid: '#c2c2c2'
-            };
 
             let height = 0;
             let font_size = 16.0;
@@ -76,7 +70,7 @@ export default {
                 let fontSizeCalcCanvas_ctx = fontSizeCalcCanvas.getContext("2d");
 
                 fontSizeCalcCanvas_ctx.textBaseline = "bottom";
-                while (font_size > 2.0)
+                while (font_size > 12.0)
                 {
                     fontSizeCalcCanvas_ctx.font = `${font_size}px sans-serif`;
                     let spans = [];
@@ -92,7 +86,7 @@ export default {
                     let not_overlapping = true;
                     for (let i = 0; i < spans.length - 1; ++i)
                     {
-                        if (spans[i][1] - spans[i + 1][0] < 1)
+                        if (spans[i][1] - spans[i + 1][0] < 2)
                         {
                             not_overlapping = false;
                             break;
@@ -102,7 +96,7 @@ export default {
                     if (not_overlapping && (spans[0][0] < 0) && (spans[spans.length - 1][1] >= -(canvas_width - 1)))
                         break;
 
-                    font_size -= 0.1;
+                    font_size -= 0.2;
                 }
 
                 d3.select('#heatmapLegendDiv').selectAll('*').remove();
@@ -123,7 +117,7 @@ export default {
                 height += 30;
             }
 
-            height += 15 + 25;
+            height += 15;
             d3.select('#heatmapLegendDiv').selectAll('*').remove();
 
             d3.select("#heatmapLegendDiv").append("canvas")
@@ -144,13 +138,13 @@ export default {
                 ctx.lineTo(canvas.width - 1, 0);
 
                 // Draw the vertical ticks
-                for (let i = 0; i < num_samples; ++i)
-                {
-                    let x_coord = Math.round(cell_width * (i + 0.5));
+                // for (let i = 0; i < num_samples; ++i)
+                // {
+                //     let x_coord = Math.round(cell_width * (i + 0.5));
 
-                    ctx.moveTo(x_coord, 0);
-                    ctx.lineTo(x_coord, 5);
-                }
+                //     ctx.moveTo(x_coord, 0);
+                //     ctx.lineTo(x_coord, 10);
+                // }
 
                 ctx.stroke();
 
@@ -173,69 +167,12 @@ export default {
                         let sample_text_height = sample_text_metrics.actualBoundingBoxAscent + sample_text_metrics.actualBoundingBoxDescent;
                         sample_text_height = sample_text_height*2;
                         let x_coord = -Math.round(cell_width * (i + 0.5)) + Math.round(sample_text_height / 2);
-                        ctx.fillText(label, 9, x_coord);
+                        ctx.fillText(label, 18, x_coord);
                     }
                 }
 
                 ctx.restore();
             }
-
-            // Draw the colour gradient
-            let legendWidth = canvas.width / 1.5;
-            let gradient = ctx.createLinearGradient((canvas.width - legendWidth) / 2, 0, (canvas.width + legendWidth) / 2, 0);
-            gradient.addColorStop(0, colour.heatmapLow);
-            gradient.addColorStop(0.5, colour.heatmapMid);
-            gradient.addColorStop(1, colour.heatmapHigh);
-
-            ctx.save();
-            ctx.fillStyle = gradient;
-            ctx.fillRect((canvas.width - legendWidth) / 2, height - 15 - 25, legendWidth, 15);
-            ctx.restore();
-
-            // Draw the min/mid/max value labels
-
-            // text formatting for min/max/avg value labels
-            let getLabel = (val) => {
-                if (val === undefined)
-                    return "NaN";
-                val = Number.isInteger(val) ? val.toFixed() : val.toFixed(2);
-                if (val.length > 1 && val.split('.')[1] == '00')
-                    val = val.split('.')[0];
-                return val;
-            }
-
-            // add and position labels to legend
-            let min = this.logTransform ? this.heatmapData.logMin : this.heatmapData.minValue;
-            let mid = this.logTransform ? this.heatmapData.logAverage : this.heatmapData.average;
-            let max = this.logTransform ? this.heatmapData.logMax : this.heatmapData.maxValue;
-
-            let min_label = getLabel(min);
-            let mid_label = getLabel(mid);
-            let max_label = getLabel(max);
-
-            font_size = 16.0;
-            let min_label_end, mid_label_start, mid_label_end, mid_label_width, max_label_start;
-
-            while (font_size > 2.0)
-            {
-                ctx.font = `${font_size}px sans-serif`;
-
-                min_label_end = ((canvas.width - legendWidth) / 2) + ctx.measureText(min_label).width;
-                max_label_start = ((canvas.width + legendWidth) / 2) - ctx.measureText(max_label).width;
-
-                mid_label_width = ctx.measureText(mid_label).width;
-                mid_label_start = (canvas.width - mid_label_width) / 2;
-                mid_label_end = (canvas.width + mid_label_width) / 2;
-
-                if ((mid_label_start - min_label_end >= 5) && (max_label_start - mid_label_end >= 5))
-                    break;
-
-                font_size -= 0.1;
-            }
-
-            ctx.fillText(min_label, (canvas.width - legendWidth) / 2, height);
-            ctx.fillText(mid_label, mid_label_start, height);
-            ctx.fillText(max_label, max_label_start, height);
         },
 
         buildHeatmapLegendSvg(symbol = false)
@@ -419,12 +356,12 @@ export default {
                 for (let i = 0; i < num_samples; ++i)
                 {
                     let label = "";
-                    if (i === 2) label = "CD34";  // Position 3 (0-based index 2)
-                    else if (i === 12) label = "SRSF2";
-                    else if (i === 22) label = "U2AF1_S34F";                    
-                    else if (i === 26) label = "U2AF1_Q157P";                    
-                    else if (i === 28) label = "SF3B1";                    
-                    else if (i === 39) label = "OtherAML";  
+                    if (i === 3) label = "CD34";  // Position 3 (0-based index 2)
+                    else if (i === 13) label = "SRSF2";
+                    else if (i === 23) label = "U2AF1_S34F";                    
+                    else if (i === 27) label = "U2AF1_Q157P";                    
+                    else if (i === 29) label = "SF3B1";                    
+                    else if (i === 40) label = "OtherAML";  
                     
                     if (label) {
                         let x_coord = Math.round(cell_width * (i + 0.5));

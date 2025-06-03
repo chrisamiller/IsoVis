@@ -193,6 +193,7 @@ Requires mainData object which is used here to update the relevant data other co
 
         <!-- Column 3.3: Nothing -->
         <b-col v-show="heatmap_data_exists && show_heatmap_column" class="col3" :cols="show_stack ? 3 : 9">
+            <HeatmapColorScale v-if="mainData.heatmapData && show_isoform_heatmap" :heatmapData="mainData.heatmapData" ref="heatmapColorScaleComponent" class="grid-item p-0 mx-0 my-3 g-0 text-center"></HeatmapColorScale>
         </b-col>
 
     </b-row>
@@ -479,6 +480,7 @@ import { CanonData, OtherIsoformData, ProteinData, mergeRanges, calculateSpliced
 import { put_in_svg, put_in_symbol, put_in_hyperlink, use, put_in_protein_symbol, isovis_logo_symbol, line, rect, rounded_rect, text_preserve_whitespace_central_baseline, text_double_centered, text_topped_centered, tspan } from '~/assets/svg_utils';
 import draggable from 'vuedraggable';
 import { BButton, BCol, BContainer, BDropdown, BDropdownItem, BForm, BFormCheckbox, BIconArrowsCollapse, BIconArrowsExpand, BIconCheck, BIconList, BIconPlus, BIconSortAlphaDown, BIconSortAlphaDownAlt, BIconX, BImg, BLink, BModal, BRow, BSpinner, VBTooltip } from 'bootstrap-vue';
+import HeatmapColorScale from '~/components/HeatmapColorScale.vue';
 
 export default
 {
@@ -505,7 +507,8 @@ export default
         BLink,
         BModal,
         BRow,
-        BSpinner
+        BSpinner,
+        HeatmapColorScale
     },
 
     directives: {
@@ -2103,6 +2106,9 @@ export default
         {
             this.$refs.heatmapComponent.buildHeatmap();
             this.$refs.heatmapLegendComponent.buildHeatmapLegend();
+            if (this.$refs.heatmapColorScaleComponent) {
+                this.$refs.heatmapColorScaleComponent.buildColorScale();
+            }
             if (this.mainData.rnaModifLevelData)
             {
                 this.$refs.RNAModifLevelsComponent.buildHeatmap();
