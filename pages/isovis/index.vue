@@ -19,12 +19,13 @@ the exact state of that page from the previous state.
         <b-navbar-brand v-if="selectedView=='Welcome'">IsoVis</b-navbar-brand>
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
         <b-form-group class="mb-0 mr-2">
-            <b-form-input v-if="selectedView=='Main'" @keyup.enter="changeZoom" v-model="enteredZoom" placeholder="Zoom to coordinates (e.g. 15720442 - 15727968)" class="mb-0" style="width: 400px;"></b-form-input>
-        </b-form-group>
-        <b-form-group class="mb-0">
-            <b-form-input @keyup="searchGenes" @keyup.enter="checkInput" v-model="enteredGene" list="geneIds" class="mb-0" placeholder="Search: type gene name/id, select, and hit enter" style="width: 400px;"></b-form-input>
+            <b-form-input v-if="selectedView=='Main'" @keyup="searchGenes" @keyup.enter="checkInput" v-model="enteredGene" list="geneIds" class="mb-0" placeholder="Search: type gene name/id, select, and hit enter" style="width: 400px;"></b-form-input>
             <b-form-datalist id="geneIds"></b-form-datalist>
         </b-form-group>
+        <b-form-group class="mb-0 mr-2">
+            <b-form-input v-if="selectedView=='Main'" @keyup.enter="changeZoom" v-model="enteredZoom" placeholder="Zoom to coordinates (e.g. 15720442 - 15727968)" class="mb-0" style="width: 400px;"></b-form-input>
+        </b-form-group>
+
         <b-button v-if="selectedView=='Main' && !$refs.componentMain.is_zoom_reset" @click="resetZoom" variant="warning" size="sm" class="ml-2" style="white-space: nowrap;">Reset zoom</b-button>
         <b-collapse id="nav-collapse" is-nav>
 
@@ -58,13 +59,6 @@ the exact state of that page from the previous state.
             <b-col cols="3" style="padding-left: 0px; padding-right: 0px;">
                 <span class="text-white">&copy; {{getYear()}} IsoVis</span>
                 <b-link href="#" v-b-modal.release-notes class="text-white ml-3">{{versionNumber}}</b-link>
-            </b-col>
-            <b-col cols="6" class="text-center" style="padding-left: 0px; padding-right: 0px;">
-                <b class="text-white">This website is free and open to all users and there is no login requirement.</b>
-            </b-col>
-            <b-col cols="3" class="text-right" style="padding-left: 0px; padding-right: 0px;">
-                <b-link href="https://stemformatics.org" target="_blank"><b-img src="~/assets/logos/StemformaticsLogo_REV_RGB_300px.png" height="22"></b-img></b-link>
-                <b-link href="https://nectar.org.au/" target="_blank" class="ml-2"><b-img src="@/assets/logos/nectardirectorate-logo.png" height="18"></b-img></b-link>
             </b-col>
         </b-row>
     </footer>
