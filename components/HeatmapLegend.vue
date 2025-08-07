@@ -208,13 +208,6 @@ export default {
             let padding = 16;
             let boundary = el.getBoundingClientRect();
             let width = boundary.width - 2 * padding;
-            let colour = {
-                heatmapLow: '#1170aa', // '#962705',
-                heatmapMid: '#fff8e6', // 'white',
-                heatmapHigh: '#fc7d0b',
-                invalid: '#c2c2c2'
-            };
-
             let height = 0;
             let font_size = 16.0;
             let canvas_width = Math.ceil(width);
@@ -256,48 +249,6 @@ export default {
 
                     font_size -= 0.1;
                 }
-            }
-
-            // text formatting for min/max/avg value labels
-            let getLabel = (val) => {
-                if (val === undefined)
-                    return "NaN";
-                val = Number.isInteger(val) ? val.toFixed() : val.toFixed(2);
-                if (val.length > 1 && val.split('.')[1] == '00')
-                    val = val.split('.')[0];
-                return val;
-            }
-
-            // add and position labels to legend
-            let min = this.logTransform ? this.heatmapData.logMin : this.heatmapData.minValue;
-            let mid = this.logTransform ? this.heatmapData.logAverage : this.heatmapData.average;
-            let max = this.logTransform ? this.heatmapData.logMax : this.heatmapData.maxValue;
-
-            let min_label = getLabel(min);
-            let mid_label = getLabel(mid);
-            let max_label = getLabel(max);
-
-            let text_font_size = 16.0;
-            let min_label_end, mid_label_start, mid_label_end, mid_label_width, max_label_start;
-
-            let svg_width = Math.ceil(width);
-            let legendWidth = svg_width / 1.5;
-
-            while (text_font_size > 2.0)
-            {
-                fontSizeCalcCanvas_ctx.font = `${text_font_size}px sans-serif`;
-
-                min_label_end = ((svg_width - legendWidth) / 2) + fontSizeCalcCanvas_ctx.measureText(min_label).width;
-                max_label_start = ((svg_width + legendWidth) / 2) - fontSizeCalcCanvas_ctx.measureText(max_label).width;
-
-                mid_label_width = fontSizeCalcCanvas_ctx.measureText(mid_label).width;
-                mid_label_start = (svg_width - mid_label_width) / 2;
-                mid_label_end = (svg_width + mid_label_width) / 2;
-
-                if ((mid_label_start - min_label_end >= 5) && (max_label_start - mid_label_end >= 5))
-                    break;
-
-                text_font_size -= 0.1;
             }
 
             let log_transform_enabled_font_size = 16.0;
@@ -369,15 +320,21 @@ export default {
                     }
                 }
             }
+            // let colour = {
+            //     heatmapLow: '#1170aa', 
+            //     heatmapMid: '#fff8e6', 
+            //     heatmapHigh: '#fc7d0b', 
+            //     invalid: '#c2c2c2'
+            // };
 
-            // Draw the colour gradient
-            svg = linear_gradient("isoform_heatmap_legend_gradient", [["0%", colour.heatmapLow], ["50%", colour.heatmapMid], ["100%", colour.heatmapHigh]]) + svg;
-            svg += rect((svg_width - legendWidth) / 2, svg_height - 15 - 25, legendWidth, 15, "url(#isoform_heatmap_legend_gradient)");
+            // // Draw the colour gradient
+            // svg = linear_gradient("isoform_heatmap_legend_gradient", [["0%", colour.heatmapLow], ["50%", colour.heatmapMid], ["100%", colour.heatmapHigh]]) + svg;
+            // svg += rect((svg_width - legendWidth) / 2, svg_height - 15 - 25, legendWidth, 15, "url(#isoform_heatmap_legend_gradient)");
 
-            // Draw the min/mid/max value labels
-            svg += text(min_label, (svg_width - legendWidth) / 2, svg_height, text_font_size, "sans-serif");
-            svg += text_centered(mid_label, svg_width / 2, svg_height, text_font_size, "sans-serif");
-            svg += text_right_aligned(max_label, (svg_width + legendWidth) / 2, svg_height, text_font_size, "sans-serif");
+            // // Draw the min/mid/max value labels
+            // svg += text(min_label, (svg_width - legendWidth) / 2, svg_height, text_font_size, "sans-serif");
+            // svg += text_centered(mid_label, svg_width / 2, svg_height, text_font_size, "sans-serif");
+            // svg += text_right_aligned(max_label, (svg_width + legendWidth) / 2, svg_height, text_font_size, "sans-serif");
 
             if (this.logTransform)
             {

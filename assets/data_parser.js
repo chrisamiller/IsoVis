@@ -357,6 +357,7 @@ export class RNAModifSitesLevelData {
 
         this.sum = 0;
         this.num_nonzerovals = 0;
+        this.counts = []
 
         this.export = {};
 
@@ -384,7 +385,7 @@ export class RNAModifSitesLevelData {
             if (this.num_nonzerovals === 0)
                 this.num_nonzerovals = 1;
 
-            this.average = this.sum / this.num_nonzerovals;                 // calculate averages
+            this.average = this.sum / this.num_nonzerovals; // calculate averages
         }
     }
 
@@ -482,6 +483,7 @@ export class RNAModifSitesLevelData {
                 {
                     this.sum += value;
                     this.num_nonzerovals += 1;
+                    this.counts.push(value)
                 }
 
                 if (isNaN(this.maxValue) || value > this.maxValue) this.maxValue = value;
@@ -1492,6 +1494,7 @@ export class SecondaryData {
 
         this.sum = 0;
         this.num_nonzerovals = 0;
+        this.counts = []
 
         this.export = [];
         this.logExport = [];
@@ -1510,20 +1513,31 @@ export class SecondaryData {
             this.update_loading_percentage(loading_percentage);
         }
 
+        // // calculate the median
+        // function median(arr){
+        //     arr.sort(function(a, b){ return a - b; });
+        //     var i = arr.length / 2;
+        //     return i % 1 == 0 ? (arr[i - 1] + arr[i]) / 2 : arr[Math.floor(i)];
+        // }
+
         if (this.transcripts.length === 0)
         {
             this.warning = "The heatmap file does not contain any information on the transcripts of the gene to be visualized.";
             this.average = NaN;
             this.logAverage = NaN;
+            // this.median = NaN;
+            // this.logMedian = NaN;
         }
         else
         {
             if (this.num_nonzerovals === 0)
                 this.num_nonzerovals = 1;
 
-            // calculate averages
+            // calculate stats
             this.average = this.sum / this.num_nonzerovals;
-            this.logAverage = Math.log10(this.average + 1);
+            this.logAverage = Math.log2(this.average + 1);
+            // this.median = median(this.counts); //TODO
+            // this.logMedian = Math.log2(this.median + 1)
         }
 
         this.allIsoforms = JSON.parse(JSON.stringify(this.transcripts)); // store copy of transcripts to allow for manually adding/removing rows
@@ -1615,12 +1629,13 @@ export class SecondaryData {
 
                 let sample = this.samples[j];
                 let value = parseFloat(entries[j]);
-                let logValue = Math.log10(value + 1); // for log transform
+                let logValue = Math.log2(value + 1); // for log transform
 
                 if (value)
                 {
                     this.sum += value;
                     this.num_nonzerovals += 1;
+                    this.counts.push(value)
                 }
 
                 if (isNaN(this.maxValue) || value > this.maxValue) this.maxValue = value;

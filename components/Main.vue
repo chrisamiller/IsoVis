@@ -90,8 +90,8 @@ Requires mainData object which is used here to update the relevant data other co
             <b-dropdown-item v-if="mainData.heatmapData" @click="setHideIsoformHeatmapLabels(!hide_isoform_heatmap_labels)" v-b-tooltip.hover.right="'Hide sample labels for the isoform heatmap'">
                 Hide isoform heatmap sample labels<b-icon-check v-if="hide_isoform_heatmap_labels" variant="success"></b-icon-check>
             </b-dropdown-item>
-            <b-dropdown-item v-if="mainData.heatmapData" @click="setLogTransform(!isoform_heatmap_log_transform)" v-b-tooltip.hover.right="'Toggle log transform for the isoform heatmap data (log10(x + 1))'">
-                Log transform of isoform heatmap<b-icon-check v-if="isoform_heatmap_log_transform" variant="success"></b-icon-check>
+            <b-dropdown-item v-if="mainData.heatmapData" @click="setLogTransform(!isoform_heatmap_log_transform)" v-b-tooltip.hover.right="'Toggle log2 transform for the isoform heatmap data (log2(x + 1))'">
+                Log2 transform of isoform heatmap<b-icon-check v-if="isoform_heatmap_log_transform" variant="success"></b-icon-check>
             </b-dropdown-item>
         </b-dropdown>
         <b-dropdown v-if="(canon_disabled || protein_disabled || protein_ready) && visible_components_exist" text="Export page as..." size="sm" variant="dark" class="ml-3">
@@ -193,7 +193,7 @@ Requires mainData object which is used here to update the relevant data other co
 
         <!-- Column 3.3: Nothing -->
         <b-col v-show="heatmap_data_exists && show_heatmap_column" class="col3" :cols="show_stack ? 3 : 9">
-            <HeatmapColorScale v-if="mainData.heatmapData && show_isoform_heatmap" :heatmapData="mainData.heatmapData" ref="heatmapColorScaleComponent" class="grid-item p-0 mx-0 my-3 g-0 text-center"></HeatmapColorScale>
+            <HeatmapColorScale v-if="mainData.heatmapData && show_isoform_heatmap" :heatmapData="mainData.heatmapData" :logTransform="isoform_heatmap_log_transform" ref="heatmapColorScaleComponent" class="grid-item p-0 mx-0 my-3 g-0 text-center"></HeatmapColorScale>
         </b-col>
 
     </b-row>

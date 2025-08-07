@@ -88,11 +88,12 @@ export default {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             let minVal = this.logTransform ? this.heatmapData.logMin : this.heatmapData.minValue;
-            let average = this.logTransform ? this.heatmapData.logAverage : this.heatmapData.average;
             let maxVal = this.logTransform ? this.heatmapData.logMax : this.heatmapData.maxValue;
+            let average = this.logTransform ? this.heatmapData.logAverage : this.heatmapData.average;
+            let midpoint = minVal+((maxVal-minVal)/2); // use halfway between min and max, not avg
             let myColor = d3.scaleLinear()
                 .range([colour.heatmapLow, colour.heatmapMid, colour.heatmapHigh])
-                .domain([minVal, average, maxVal]);
+                .domain([minVal, midpoint, maxVal]);
 
             let rows = uppercase_transcripts.length;
             let cols = samples.length;
@@ -268,11 +269,12 @@ export default {
             let svg = rect(0, 0, width, height, colour.invalid);
 
             let minVal = this.logTransform ? this.heatmapData.logMin : this.heatmapData.minValue;
-            let average = this.logTransform ? this.heatmapData.logAverage : this.heatmapData.average;
             let maxVal = this.logTransform ? this.heatmapData.logMax : this.heatmapData.maxValue;
+            let average = this.logTransform ? this.heatmapData.logAverage : this.heatmapData.average;
+            let midpoint = minVal+((maxVal-minVal)/2);
             let myColor = d3.scaleLinear()
                 .range([colour.heatmapLow, colour.heatmapMid, colour.heatmapHigh])
-                .domain([minVal, average, maxVal]);
+                .domain([minVal, midpoint, maxVal]);
 
             let rows = uppercase_transcripts.length;
             let cols = samples.length;
