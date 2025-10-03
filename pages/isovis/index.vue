@@ -277,9 +277,6 @@ export default
                 this.selectedView = 'Main';
 
                 // Add transcript ids to heatmap data
-                // console.log(data)
-                //console.log(JSON.parse(JSON.stringify(data)))
-                //console.log(data.secondaryData.transcriptOrder)
                 data.secondaryData.transcriptOrder = JSON.parse(JSON.stringify(data.primaryData.transcriptOrder));
                 this.mainData = {isoformData:data.primaryData, heatmapData:data.secondaryData, canonData:data.canonData, 
                     proteinData:data.proteinData, selectedGene:data.selectedGene, geneLabel:data.geneLabel, demoData:true, species:"Homo_sapiens", is_use_grch37: false};
@@ -487,7 +484,7 @@ export default
             const signal = this.controller.signal;
 
             // Search for Ensembl gene IDs by gene symbol from mygene.info
-            let data = await fetch(`https://mygene.info/v3/query?species=${this.taxon_id}&fields=symbol,ensembl.gene&q=symbol:${this.enteredGene}*`, { signal })
+            let data = await fetch(`https://mygene.info/v3/query?species=${this.taxon_id}&fields=symbol,ensembl.gene&q=symbol:${this.enteredGene}*&size=30`, { signal })
                 .then(res => res.json())
                 .catch(() => {});
 
@@ -689,8 +686,8 @@ export default
             this.selectedView = 'Main';
             // uncomment this line to dump the json to the dev console in chrome:
             // console.log(this)
-            console.log("data dump after load:")
-            console.log(JSON.parse(JSON.stringify(this.mainData)))
+            // console.log("data dump after load:")
+            // console.log(JSON.parse(JSON.stringify(this.mainData)))
 
         },
 
