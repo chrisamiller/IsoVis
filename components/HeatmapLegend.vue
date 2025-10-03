@@ -155,13 +155,19 @@ export default {
                 for (let i = 0; i < num_samples; ++i)
                 {
                     let label = "";
-                    if (i === 2) label = "CD34";
-                    else if (i === 12) label = "SRSF2";
-                    else if (i === 22) label = "U2AF1_S34F";                    
-                    else if (i === 26) label = "U2AF1_Q157P";                    
-                    else if (i === 28) label = "SF3B1";                    
-                    else if (i === 39) label = "OtherAML";                    
-                    
+
+                    if (i === 2) label = "CD3";
+                    else if (i === 5) label = "CD19";
+                    else if (i === 10) label = "Mono";
+                    else if (i === 13) label = "PMN";
+                    else if (i === 16) label = "Pro";
+                    else if (i === 21) label = "CD34";
+                    else if (i === 32) label = "SRSF2";
+                    else if (i === 41) label = "U2AF1_S34F";
+                    else if (i === 45) label = "U2AF1_Q157P";
+                    else if (i === 48) label = "SF3B1";
+                    else if (i === 60) label = "OtherAML";
+
                     if (label) {
                         let sample_text_metrics = ctx.measureText(label);
                         let sample_text_height = sample_text_metrics.actualBoundingBoxAscent + sample_text_metrics.actualBoundingBoxDescent;
@@ -307,13 +313,19 @@ export default {
                 for (let i = 0; i < num_samples; ++i)
                 {
                     let label = "";
-                    if (i === 3) label = "CD34";  // Position 3 (0-based index 2)
-                    else if (i === 13) label = "SRSF2";
-                    else if (i === 23) label = "U2AF1_S34F";                    
-                    else if (i === 27) label = "U2AF1_Q157P";                    
-                    else if (i === 29) label = "SF3B1";                    
-                    else if (i === 40) label = "OtherAML";  
-                    
+
+                    if (i === 2) label = "CD3";
+                    else if (i === 5) label = "CD19";
+                    else if (i === 10) label = "Mono";
+                    else if (i === 13) label = "PMN";
+                    else if (i === 16) label = "Pro";
+                    else if (i === 21) label = "CD34";
+                    else if (i === 32) label = "SRSF2";
+                    else if (i === 41) label = "U2AF1_S34F";
+                    else if (i === 45) label = "U2AF1_Q157P";
+                    else if (i === 48) label = "SF3B1";
+                    else if (i === 60) label = "OtherAML";
+
                     if (label) {
                         let x_coord = Math.round(cell_width * (i + 0.5));
                         svg += heatmap_legend_text(label, x_coord, 9, font_size, "sans-serif");
@@ -321,9 +333,9 @@ export default {
                 }
             }
             // let colour = {
-            //     heatmapLow: '#1170aa', 
-            //     heatmapMid: '#fff8e6', 
-            //     heatmapHigh: '#fc7d0b', 
+            //     heatmapLow: '#1170aa',
+            //     heatmapMid: '#fff8e6',
+            //     heatmapHigh: '#fc7d0b',
             //     invalid: '#c2c2c2'
             // };
 

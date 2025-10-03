@@ -23,7 +23,7 @@ export default {
         return {
             show_isoform_heatmap: true,
             logTransform: false,
-            columnDividers: [5, 20, 25, 27, 29], // Array of column indices before which to draw dividers (0-based)
+            columnDividers: [4, 7, 11, 14, 18, 23, 39, 44, 46, 48], // Array of column indices before which to draw dividers (0-based)
         };
     },
 
