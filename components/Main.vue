@@ -90,7 +90,7 @@ Requires mainData object which is used here to update the relevant data other co
             <b-dropdown-item v-if="mainData.heatmapData" @click="setHideIsoformHeatmapLabels(!hide_isoform_heatmap_labels)" v-b-tooltip.hover.right="'Hide sample labels for the isoform heatmap'">
                 Hide isoform heatmap sample labels<b-icon-check v-if="hide_isoform_heatmap_labels" variant="success"></b-icon-check>
             </b-dropdown-item>
-            <b-dropdown-item v-if="mainData.heatmapData" @click="setLogTransform(!isoform_heatmap_log_transform)" v-b-tooltip.hover.right="'Toggle log2 transform for the isoform heatmap data (log2(x + 1))'">
+            <b-dropdown-item v-if="mainData.heatmapData" @click="setLogTransform(!isoform_heatmap_log_transform)" v-b-tooltip.hover.right="'Toggle log2 transform for heatmap data (log2(x + 1))'">
                 Log2 transform of isoform heatmap<b-icon-check v-if="isoform_heatmap_log_transform" variant="success"></b-icon-check>
             </b-dropdown-item>
         </b-dropdown>
@@ -3341,7 +3341,7 @@ export default
             this.setHideIsoformHeatmapLabels(false);
             this.setShowRNAModifHeatmap(false);
             this.setShowIsoformHeatmap(false);
-            this.setLogTransform(false);
+            this.setLogTransform(true);
 
             this.resizePage();
 
@@ -3420,8 +3420,8 @@ export default
                                 this.protein_disabled = true;
                         });
                 });
-            console.log("dumping data after canon loading");
-            console.log(JSON.parse(JSON.stringify(this.mainData)));
+            // console.log("dumping data after canon loading");
+            // console.log(JSON.parse(JSON.stringify(this.mainData)));
         // }
             // else
             // {

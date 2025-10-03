@@ -73,7 +73,11 @@ export default {
                 val = Number.isInteger(val) ? val.toFixed() : val.toFixed(2);
                 if (val.length > 1 && val.split('.')[1] == '00')
                     val = val.split('.')[0];
-                return val;
+                if (val > 2){
+                    return Math.round(val);
+                } else {
+                    return val;
+                }
             }
 
             // add and position labels to legend
@@ -87,13 +91,14 @@ export default {
             let max_label = getLabel(max);
 
             let font_size = 16.0;
-            let min_label_end, mid_label_start, mid_label_end, mid_label_width, max_label_start;
+            let min_label_end, mid_label_start, mid_label_end, mid_label_width, max_label_start, max_label_width;
 
             while (font_size > 2.0) {
                 ctx.font = `${font_size}px sans-serif`;
 
                 min_label_end = ((canvas.width - legendWidth) / 2) + ctx.measureText(min_label).width;
                 max_label_start = ((canvas.width + legendWidth) / 2) - ctx.measureText(max_label).width;
+                max_label_width = ctx.measureText(max_label).width;
 
                 mid_label_width = ctx.measureText(mid_label).width;
                 mid_label_start = (canvas.width - mid_label_width) / 2;
@@ -108,6 +113,9 @@ export default {
             ctx.fillText(min_label, (canvas.width - legendWidth) / 2, height);
             ctx.fillText(mid_label, mid_label_start, height);
             ctx.fillText(max_label, max_label_start, height);
+            if(this.logTransform){
+                ctx.fillText("(log2)", max_label_start + max_label_width*1.3, height/3);
+            }
         }
     },
 
