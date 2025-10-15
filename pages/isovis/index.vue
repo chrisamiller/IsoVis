@@ -32,18 +32,17 @@ the exact state of that page from the previous state.
             <!-- Right aligned nav items -->
             <b-navbar-nav class="ml-auto">
                 <b-dropdown text="About" variant="dark" right class="ml-2">
-                    <b-dropdown-item href="about/" target="_blank">About IsoVis</b-dropdown-item>
-                    <b-dropdown-item @click="modal.changelog.show=true">Release notes</b-dropdown-item>
+                    <b-dropdown-item href="isovis/about/" target="_blank">About AML-IsoVis</b-dropdown-item>
                     <b-dropdown-item @click="modal.citation.show=true">How to cite us</b-dropdown-item>
-                    <b-dropdown-item href="misc/" target="_blank">Privacy, license and funding</b-dropdown-item>
+                    <b-dropdown-item href="isovis/misc/" target="_blank">Privacy, license and funding</b-dropdown-item>
                 </b-dropdown>
                 <b-dropdown text="Help" variant="dark" right class="ml-2">
-                    <b-dropdown-item href="tutorial/" target="_blank">Tutorial on how to use IsoVis</b-dropdown-item>
-                    <b-dropdown-item href="help_upload/" target="_blank">Help on upload data</b-dropdown-item>
-                    <b-dropdown-item href="help_gene_strand/" target="_blank">Help on gene strand diagram</b-dropdown-item>
-                    <b-dropdown-item href="faq/" target="_blank">Frequently asked questions (FAQ)</b-dropdown-item>
-                    <b-dropdown-item href="https://github.com/ClarkLaboratory/IsoVis" target="_blank">Go to the IsoVis GitHub repository</b-dropdown-item>
-                    <b-dropdown-item href="https://github.com/ClarkLaboratory/IsoVis/issues" target="_blank">Report issues or request features</b-dropdown-item>
+                    <b-dropdown-item href="isovis/tutorial/" target="_blank">Tutorial on how to use IsoVis</b-dropdown-item>
+                    <b-dropdown-item href="isovis/help_upload/" target="_blank">Help on upload data</b-dropdown-item>
+                    <b-dropdown-item href="isovis/help_gene_strand/" target="_blank">Help on gene strand diagram</b-dropdown-item>
+                    <b-dropdown-item href="isovis/faq/" target="_blank">Frequently asked questions (FAQ)</b-dropdown-item>
+                    <b-dropdown-item href="https://github.com/chrisamiller/IsoVis" target="_blank">Go to the AML-IsoVis GitHub repository</b-dropdown-item>
+                    <b-dropdown-item href="https://github.com/ClarkLaboratory/IsoVis" target="_blank">Go to the original IsoVis GitHub repository</b-dropdown-item>
                 </b-dropdown>
             </b-navbar-nav>
         </b-collapse>
