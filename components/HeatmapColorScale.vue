@@ -38,9 +38,9 @@ export default {
             let boundary = el.getBoundingClientRect();
             let width = boundary.width - 2 * padding;
             let colour = {
-                heatmapLow: '#1170aa',
-                heatmapMid: '#fff8e6',
-                heatmapHigh: '#fc7d0b',
+                heatmapLow: '#fff7fb',
+                heatmapMid: '#67a9cf',
+                heatmapHigh: '#016c59',
                 invalid: '#c2c2c2'
             };
 
