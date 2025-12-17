@@ -13,7 +13,7 @@
     </b-row>
     <div class="text-center">
         <b-button @click="loadDataFromServer" class="m-1" size="lg" variant="warning">Load data</b-button>
-        <b-button href="tutorial/" target="_blank" class="m-1" size="lg" variant="warning">IsoVis tutorial <b-icon-book aria-hidden="true"></b-icon-book></b-button>
+        <b-button href="isovis/tutorial/" target="_blank" class="m-1" size="lg" variant="warning">IsoVis tutorial <b-icon-book aria-hidden="true"></b-icon-book></b-button>
     </div>
     <br>
     <b-row>
