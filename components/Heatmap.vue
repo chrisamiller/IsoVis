@@ -23,7 +23,20 @@ export default {
         return {
             show_isoform_heatmap: true,
             logTransform: false,
-            columnDividers: [4, 7, 11, 14, 18, 23, 39, 44, 46, 48], // Array of column indices before which to draw dividers (0-based)
+            swapHeatmap: false,
+            columnDividers: [16, 21, 23, 25, 48, 53, 57, 60, 64, 67], // Array of column indices before which to draw dividers (0-based)
+
+  // 16 SRSF2   16
+  //  5 U2AF1_S34F  21 
+  //  2 U2AF1_Q157P  23
+  //  2 SF3B1  25
+  // 23 OtherAML  48
+  //  5 CD34  53
+  //  4 CD3  57
+  //  3 CD19  60
+  //  4 Mono  64
+  //  3 PMN  67
+  //  4 Pro  (71)
         };
     },
 
@@ -142,7 +155,7 @@ export default {
 
             // Draw white divider lines at specified column positions
             ctx.strokeStyle = '#999999';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1.5;
             for (let colIndex of this.columnDividers) {
                 let x = Math.round(cell_width * colIndex);
                 ctx.beginPath();
@@ -336,6 +349,10 @@ export default {
             this.buildHeatmap();
         },
         logTransform: function() {
+            this.buildHeatmap();
+        },
+        swapHeatmap: function() {
+            console.log("build");
             this.buildHeatmap();
         }
     }

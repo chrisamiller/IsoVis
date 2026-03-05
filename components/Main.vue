@@ -93,6 +93,10 @@ Requires mainData object which is used here to update the relevant data other co
             <b-dropdown-item v-if="mainData.heatmapData" @click="setLogTransform(!isoform_heatmap_log_transform)" v-b-tooltip.hover.right="'Toggle log2 transform for heatmap data (log2(x + 1))'">
                 Log2 transform of isoform heatmap<b-icon-check v-if="isoform_heatmap_log_transform" variant="success"></b-icon-check>
             </b-dropdown-item>
+            <b-dropdown-item v-if="mainData.heatmapData" @click="swapHeatmap(!alt_heatmap)" v-b-tooltip.hover.right="'Toggle to alternate heatmap'">
+                Switch to alternate heatmap<b-icon-check v-if="alt_heatmap" variant="success"></b-icon-check>
+            </b-dropdown-item>
+
         </b-dropdown>
         <b-dropdown v-if="(canon_disabled || protein_disabled || protein_ready) && visible_components_exist" text="Export page as..." size="sm" variant="dark" class="ml-3">
             <b-dropdown-item @click="exportPNG()">PNG</b-dropdown-item>
@@ -581,6 +585,7 @@ export default
             labels_ready: false,
             labels: {"ensembl": "", "uniprot": "", "uniparc": "", "interpro_source_database": ""},
             isoform_heatmap_log_transform: false,
+            alt_heatmap: false,
 
             canondata_ranges: [],
             canondata_start: -1,
@@ -2361,6 +2366,19 @@ export default
             this.$refs.heatmapLegendComponent.logTransform = state;
         },
 
+        // switch out a heatmap that's loaded for an alternate secondary heatmap
+        // makes some assumptions about samples and ordering staying the same at present
+        // current use case - long read and short read data from the same samples
+        swapHeatmap(state)
+        {
+            this.alt_heatmap = state;
+            let tmp = this.mainData.heatmap2Data;
+            tmp.transcriptOrder = this.mainData.heatmapData.transcriptOrder;
+            this.mainData.heatmap2Data = this.mainData.heatmapData;
+            this.mainData.heatmapData = tmp;
+            this.$refs.heatmapComponent.swapHeatmap = state;
+        },
+
         /**
          * Fetch a JSON object from a URL.
          * @param {string} url URL
@@ -3289,6 +3307,7 @@ export default
             this.no_user_orfs = true;
             this.protein_ready = false;
             this.isoform_heatmap_log_transform = false;
+            this.alt_heatmap = false;
             this.labels = {"ensembl": "", "refseq": "", "uniprot": "", "uniparc": "", "interpro_source_database": ""};
 
             this.protein_disabled = false;

@@ -156,17 +156,40 @@ export default {
                 {
                     let label = "";
 
-                    if (i === 2) label = "CD3";
-                    else if (i === 5) label = "CD19";
-                    else if (i === 10) label = "Mono";
-                    else if (i === 13) label = "PMN";
-                    else if (i === 16) label = "Pro";
-                    else if (i === 21) label = "CD34";
-                    else if (i === 32) label = "SRSF2";
-                    else if (i === 41) label = "U2AF1_S34F";
-                    else if (i === 45) label = "U2AF1_Q157P";
-                    else if (i === 48) label = "SF3B1";
-                    else if (i === 60) label = "OtherAML";
+                    // if (i === 2) label = "CD3";
+                    // else if (i === 5) label = "CD19";
+                    // else if (i === 10) label = "Mono";
+                    // else if (i === 13) label = "PMN";
+                    // else if (i === 16) label = "Pro";
+                    // else if (i === 21) label = "CD34";
+                    // else if (i === 32) label = "SRSF2";
+                    // else if (i === 41) label = "U2AF1_S34F";
+                    // else if (i === 45) label = "U2AF1_Q157P";
+                    // else if (i === 48) label = "SF3B1";
+                    // else if (i === 60) label = "OtherAML";
+
+  // 16 SRSF2
+  //  5 U2AF1_S34F
+  //  2 U2AF1_Q157P
+  //  2 SF3B1
+  // 23 OtherAML
+  //  5 CD34
+  //  4 CD3
+  //  3 CD19
+  //  4 Mono
+  //  3 PMN
+  //  4 Pro
+                    if (i === 8) label = "SRSF2";
+                    else if (i === 18) label = "U2AF1_S34F";
+                    else if (i === 22) label = "U2AF1_Q157P";
+                    else if (i === 24) label = "SF3B1";
+                    else if (i === 36) label = "OtherAML";
+                    else if (i === 50) label = "CD34";
+                    else if (i === 55) label = "CD3";
+                    else if (i === 58) label = "CD19";
+                    else if (i === 62) label = "Mono";
+                    else if (i === 65) label = "PMN";
+                    else if (i === 69) label = "Pro";
 
                     if (label) {
                         let sample_text_metrics = ctx.measureText(label);
@@ -314,17 +337,17 @@ export default {
                 {
                     let label = "";
 
-                    if (i === 2) label = "CD3";
-                    else if (i === 5) label = "CD19";
-                    else if (i === 10) label = "Mono";
-                    else if (i === 13) label = "PMN";
-                    else if (i === 16) label = "Pro";
-                    else if (i === 21) label = "CD34";
-                    else if (i === 32) label = "SRSF2";
-                    else if (i === 41) label = "U2AF1_S34F";
-                    else if (i === 45) label = "U2AF1_Q157P";
-                    else if (i === 48) label = "SF3B1";
-                    else if (i === 60) label = "OtherAML";
+                    if (i === 8) label = "SRSF2";
+                    else if (i === 18) label = "U2AF1_S34F";
+                    else if (i === 22) label = "U2AF1_Q157P";
+                    else if (i === 24) label = "SF3B1";
+                    else if (i === 36) label = "OtherAML";
+                    else if (i === 50) label = "CD34";
+                    else if (i === 55) label = "CD3";
+                    else if (i === 58) label = "CD19";
+                    else if (i === 62) label = "Mono";
+                    else if (i === 65) label = "PMN";
+                    else if (i === 69) label = "Pro";
 
                     if (label) {
                         let x_coord = Math.round(cell_width * (i + 0.5));
