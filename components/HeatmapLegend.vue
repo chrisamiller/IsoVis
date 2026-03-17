@@ -152,52 +152,13 @@ export default {
                 ctx.save();
                 ctx.rotate(Math.PI / 2);
 
-                for (let i = 0; i < num_samples; ++i)
-                {
-                    let label = "";
-
-                    // if (i === 2) label = "CD3";
-                    // else if (i === 5) label = "CD19";
-                    // else if (i === 10) label = "Mono";
-                    // else if (i === 13) label = "PMN";
-                    // else if (i === 16) label = "Pro";
-                    // else if (i === 21) label = "CD34";
-                    // else if (i === 32) label = "SRSF2";
-                    // else if (i === 41) label = "U2AF1_S34F";
-                    // else if (i === 45) label = "U2AF1_Q157P";
-                    // else if (i === 48) label = "SF3B1";
-                    // else if (i === 60) label = "OtherAML";
-
-  // 16 SRSF2
-  //  5 U2AF1_S34F
-  //  2 U2AF1_Q157P
-  //  2 SF3B1
-  // 23 OtherAML
-  //  5 CD34
-  //  4 CD3
-  //  3 CD19
-  //  4 Mono
-  //  3 PMN
-  //  4 Pro
-                    if (i === 8) label = "SRSF2";
-                    else if (i === 18) label = "U2AF1_S34F";
-                    else if (i === 22) label = "U2AF1_Q157P";
-                    else if (i === 24) label = "SF3B1";
-                    else if (i === 36) label = "OtherAML";
-                    else if (i === 50) label = "CD34";
-                    else if (i === 55) label = "CD3";
-                    else if (i === 58) label = "CD19";
-                    else if (i === 62) label = "Mono";
-                    else if (i === 65) label = "PMN";
-                    else if (i === 69) label = "Pro";
-
-                    if (label) {
-                        let sample_text_metrics = ctx.measureText(label);
-                        let sample_text_height = sample_text_metrics.actualBoundingBoxAscent + sample_text_metrics.actualBoundingBoxDescent;
-                        sample_text_height = sample_text_height*2;
-                        let x_coord = -Math.round(cell_width * (i + 0.5)) + Math.round(sample_text_height / 2);
-                        ctx.fillText(label, 18, x_coord);
-                    }
+                let groups = (this.heatmapData && this.heatmapData.groups) ? this.heatmapData.groups : [];
+                for (let g of groups) {
+                    let label = g.name;
+                    let m = ctx.measureText(label);
+                    let text_h = (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) * 2;
+                    let x_coord = -Math.round(cell_width * (g.midpoint + 0.5)) + Math.round(text_h / 2);
+                    ctx.fillText(label, 18, x_coord);
                 }
 
                 ctx.restore();
@@ -240,6 +201,7 @@ export default {
             let height = 0;
             let font_size = 16.0;
             let canvas_width = Math.ceil(width);
+            let svg_width = canvas_width;
             let num_samples = data.length;
             let cell_width = canvas_width / num_samples;
 
@@ -333,26 +295,10 @@ export default {
                 }
 
                 // Draw the sample names below the ticks
-                for (let i = 0; i < num_samples; ++i)
-                {
-                    let label = "";
-
-                    if (i === 8) label = "SRSF2";
-                    else if (i === 18) label = "U2AF1_S34F";
-                    else if (i === 22) label = "U2AF1_Q157P";
-                    else if (i === 24) label = "SF3B1";
-                    else if (i === 36) label = "OtherAML";
-                    else if (i === 50) label = "CD34";
-                    else if (i === 55) label = "CD3";
-                    else if (i === 58) label = "CD19";
-                    else if (i === 62) label = "Mono";
-                    else if (i === 65) label = "PMN";
-                    else if (i === 69) label = "Pro";
-
-                    if (label) {
-                        let x_coord = Math.round(cell_width * (i + 0.5));
-                        svg += heatmap_legend_text(label, x_coord, 9, font_size, "sans-serif");
-                    }
+                let groups = (this.heatmapData && this.heatmapData.groups) ? this.heatmapData.groups : [];
+                for (let g of groups) {
+                    let x_coord = Math.round(cell_width * (g.midpoint + 0.5));
+                    svg += heatmap_legend_text(g.name, x_coord, 9, font_size, "sans-serif");
                 }
             }
             // let colour = {

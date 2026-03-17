@@ -1541,6 +1541,32 @@ export class SecondaryData {
         }
 
         this.allIsoforms = JSON.parse(JSON.stringify(this.transcripts)); // store copy of transcripts to allow for manually adding/removing rows
+
+        // Derive group dividers and labels from sample name prefixes (first dash-delimited token)
+        let _dataColumns = [];
+        for (let i = 0; i < this.samples.length; i++) {
+            if (i === this.gene_id_colnum || i === this.transcript_id_colnum) continue;
+            _dataColumns.push(this.samples[i]);
+        }
+        let _groups = [];
+        let _dividers = [];
+        let _currentGroup = null;
+        for (let idx = 0; idx < _dataColumns.length; idx++) {
+            let prefix = _dataColumns[idx].split('-')[0];
+            if (prefix !== _currentGroup) {
+                if (_currentGroup !== null) _dividers.push(idx);
+                if (_groups.length > 0) _groups[_groups.length - 1].end = idx - 1;
+                _groups.push({ name: prefix, start: idx });
+                _currentGroup = prefix;
+            }
+        }
+        if (_groups.length > 0) {
+            _groups[_groups.length - 1].end = _dataColumns.length - 1;
+            for (let g of _groups) g.midpoint = Math.floor((g.start + g.end) / 2);
+        }
+        this.columnDividers = _dividers;
+        this.groups = _groups;
+
         this.valid = true;
     }
 

@@ -15,7 +15,7 @@ See 'secondaryData' key in demo_data.json for example data.
         
 <script>
 import * as d3 from 'd3';
-import {put_in_svg, rect} from "~/assets/svg_utils";
+import {put_in_svg, rect, line} from "~/assets/svg_utils";
 
 export default {
     props: ["heatmapData"],
@@ -24,19 +24,6 @@ export default {
             show_isoform_heatmap: true,
             logTransform: false,
             swapHeatmap: false,
-            columnDividers: [16, 21, 23, 25, 48, 53, 57, 60, 64, 67], // Array of column indices before which to draw dividers (0-based)
-
-  // 16 SRSF2   16
-  //  5 U2AF1_S34F  21 
-  //  2 U2AF1_Q157P  23
-  //  2 SF3B1  25
-  // 23 OtherAML  48
-  //  5 CD34  53
-  //  4 CD3  57
-  //  3 CD19  60
-  //  4 Mono  64
-  //  3 PMN  67
-  //  4 Pro  (71)
         };
     },
 
@@ -156,7 +143,7 @@ export default {
             // Draw white divider lines at specified column positions
             ctx.strokeStyle = '#999999';
             ctx.lineWidth = 1.5;
-            for (let colIndex of this.columnDividers) {
+            for (let colIndex of (this.heatmapData.columnDividers || [])) {
                 let x = Math.round(cell_width * colIndex);
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
@@ -331,6 +318,11 @@ export default {
 
                     svg += rect(x, y, Math.ceil(cell_width), Math.ceil(cell_height), cell_colour);
                 }
+            }
+
+            for (let colIndex of (this.heatmapData.columnDividers || [])) {
+                let x = Math.round(cell_width * colIndex);
+                svg += line(x, 0, x, height, '#999999', 1.5);
             }
 
             if (symbol)
