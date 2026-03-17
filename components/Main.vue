@@ -194,6 +194,9 @@ Requires mainData object which is used here to update the relevant data other co
 
         <!-- Column 3.3: Nothing -->
         <b-col v-show="heatmap_data_exists && show_heatmap_column" class="col3" :cols="show_stack ? 3 : 9">
+            <div v-if="mainData.heatmapData && show_isoform_heatmap" class="text-center mb-1">
+                <a href="#" @click.prevent="$root.$emit('showStackedBarplot')" style="font-size:0.9em;">Abundance Barplot</a>
+            </div>
             <HeatmapColorScale v-if="mainData.heatmapData && show_isoform_heatmap" :heatmapData="mainData.heatmapData" :logTransform="isoform_heatmap_log_transform" ref="heatmapColorScaleComponent" class="grid-item p-0 mx-0 my-3 g-0 text-center"></HeatmapColorScale>
         </b-col>
 
