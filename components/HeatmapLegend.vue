@@ -9,9 +9,13 @@ See 'secondaryData' key in demo_data.json for example data.
 
 <template>
 <div>
-    <div id="heatmapLegendDiv">
-        <p>Heatmap legend</p>
-    </div>
+  <div v-if="heatmapData" class="text-center mb-1">
+    <a href="#" @click.prevent="$root.$emit('showStackedBarplot')"
+       style="font-size:0.9em;">Abundance Barplot</a>
+  </div>
+  <div id="heatmapLegendDiv">
+    <p>Heatmap legend</p>
+  </div>
 </div>
 </template>
 

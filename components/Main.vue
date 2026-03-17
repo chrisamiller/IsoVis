@@ -452,6 +452,8 @@ Requires mainData object which is used here to update the relevant data other co
             <HeatmapLegend :heatmapData="mainData.heatmapData" ref="heatmapLegendComponent" class="grid-item p-0 mx-0 my-3 g-0 text-center"></HeatmapLegend>
         </b-col>
 
+        <StackedBarplot :heatmapData="mainData.heatmapData" />
+
     </b-row>
 
     <!-- Row 13: Nothing, gene strand explanation, and nothing -->
@@ -482,6 +484,7 @@ import { put_in_svg, put_in_symbol, put_in_hyperlink, use, put_in_protein_symbol
 import draggable from 'vuedraggable';
 import { BButton, BCol, BContainer, BDropdown, BDropdownItem, BForm, BFormCheckbox, BIconArrowsCollapse, BIconArrowsExpand, BIconCheck, BIconList, BIconPlus, BIconSortAlphaDown, BIconSortAlphaDownAlt, BIconX, BImg, BLink, BModal, BRow, BSpinner, VBTooltip } from 'bootstrap-vue';
 import HeatmapColorScale from '~/components/HeatmapColorScale.vue';
+import StackedBarplot from '~/components/StackedBarplot.vue';
 
 export default
 {
@@ -509,7 +512,8 @@ export default
         BModal,
         BRow,
         BSpinner,
-        HeatmapColorScale
+        HeatmapColorScale,
+        StackedBarplot
     },
 
     directives: {
