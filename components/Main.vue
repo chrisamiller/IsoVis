@@ -427,7 +427,7 @@ Requires mainData object which is used here to update the relevant data other co
 
         <!-- Column 11.2: Isoform stack -->
         <b-col v-show="show_stack" class="col2" :cols="(heatmap_data_exists && show_heatmap_column) ? 6 : 9">
-            <IsoformStack :base-axis="baseAxis" :isoform-list="mainData.isoformData.isoformList" ref="isoformStackComponent" class="grid-item mx-0 g-0" style="padding-left: 1rem !important; padding-right: 1rem !important;"></IsoformStack>
+            <IsoformStack :base-axis="baseAxis" :isoform-list="mainData.isoformData.isoformList" :sqanti-data="mainData.sqantiData" ref="isoformStackComponent" class="grid-item mx-0 g-0" style="padding-left: 1rem !important; padding-right: 1rem !important;"></IsoformStack>
         </b-col>
 
         <!-- Column 11.3: Heatmap -->

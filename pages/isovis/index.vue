@@ -76,6 +76,14 @@ the exact state of that page from the previous state.
         <p>No matching gene found in the stack data file. Please select a gene from the list.</p>
     </b-modal>
 
+    <!-- Server data loading modal -->
+    <b-modal v-model="modal.serverLoading.show" size="sm" hide-header hide-footer no-close-on-backdrop no-close-on-esc centered>
+        <div class="text-center py-3">
+            <b-spinner style="width: 3rem; height: 3rem;" variant="primary"></b-spinner>
+            <p class="mt-3 mb-0">Loading...</p>
+        </div>
+    </b-modal>
+
     <!-- Loading modal -->
     <b-modal v-model="modal.loading.show" size="md" title="Processing data..." hide-header-close hide-footer no-close-on-backdrop no-close-on-esc>
         <b-progress max="100" precision="2" show-progress>
@@ -103,7 +111,7 @@ the exact state of that page from the previous state.
 
 <script>
 import { PrimaryData, SecondaryData, RNAModifSitesData, RNAModifSitesLevelData } from '~/assets/data_parser';
-import { BButton, BCol, BCollapse, BDropdown, BDropdownItem, BForm, BFormDatalist, BFormFile, BFormGroup, BFormInput, BImg, BLink, BModal, BNavbar, BNavbarBrand, BNavbarNav, BNavbarToggle, BProgress, BProgressBar, BRow, BVModalPlugin, VBModal, VBTooltip } from 'bootstrap-vue';
+import { BButton, BCol, BCollapse, BDropdown, BDropdownItem, BForm, BFormDatalist, BFormFile, BFormGroup, BFormInput, BImg, BLink, BModal, BNavbar, BNavbarBrand, BNavbarNav, BNavbarToggle, BProgress, BProgressBar, BRow, BSpinner, BVModalPlugin, VBModal, VBTooltip } from 'bootstrap-vue';
 
 var mydata={};
 export default
@@ -128,6 +136,7 @@ export default
         BNavbarToggle,
         BProgress,
         BProgressBar,
+        BSpinner,
         BRow,
         BVModalPlugin
     },
@@ -143,6 +152,7 @@ export default
             selectedView: "Welcome",
 
             mainData: {init: false, isoformData:{}, heatmapData:null, heatmap2Data:null, canonData:{}, selectedGene:'', geneLabel:'', demoData:false, is_use_grch37:false},
+            sqantiData: null,
 
             modal: {
                 uploadData:
@@ -167,6 +177,10 @@ export default
                     show: false,
                     msg: "Loading...",
                     value: 0,
+                },
+                serverLoading:
+                {
+                    show: false,
                 },
                 changelog:
                 {
@@ -218,6 +232,7 @@ export default
 
     methods: {
         async handleLoadDataFromServer() {
+            this.modal.serverLoading.show = true;
             try {
                 // Load precomputed compact JSON (replaces the 968 MB GTF)
                 const jsonResponse = await fetch('/aml_data.json.gz');
@@ -245,6 +260,20 @@ export default
                     serverHeatmap2File = new File([heatmap2DecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
                 }
 
+                // SQANTI data — optional, fail silently
+                try {
+                    const sqantiResponse = await fetch('/aml_sqanti.json.gz');
+                    if (sqantiResponse.ok) {
+                        const sqantiBlob = await sqantiResponse.blob();
+                        const sqantiDecompressor = new DecompressionStream("gzip");
+                        const sqantiStream = sqantiBlob.stream().pipeThrough(sqantiDecompressor);
+                        const sqantiText = await new Response(sqantiStream).text();
+                        this.sqantiData = JSON.parse(sqantiText);
+                    }
+                } catch (e) {
+                    console.warn('SQANTI data not available:', e);
+                }
+
                 // No stack file needed — gene data comes from amlGeneJSON
                 this.modal.uploadData.stackFile = null;
                 this.modal.uploadData.heatmapFile = serverHeatmapFile;
@@ -255,6 +284,8 @@ export default
             } catch (error) {
                 console.error('Error loading server data:', error);
                 this.$bvModal.msgBoxOk('Error loading data from server. Please try again or contact support.');
+            } finally {
+                this.modal.serverLoading.show = false;
             }
         },
 
@@ -651,7 +682,7 @@ export default
                 this.$refs.componentMain.abortFetches();
             }
 
-            this.mainData = {isoformData:isoformData, heatmapData:heatmapData, heatmap2Data:heatmap2Data, rnaModifData:rnaModifData, rnaModifLevelData:rnaModifLevelData, canonData:{}, demoData:false, selectedGene:this.selectedGene, species:species, is_use_grch37: (this.is_use_grch37 && (species === "Homo_sapiens"))};
+            this.mainData = {isoformData:isoformData, heatmapData:heatmapData, heatmap2Data:heatmap2Data, rnaModifData:rnaModifData, rnaModifLevelData:rnaModifLevelData, canonData:{}, demoData:false, selectedGene:this.selectedGene, species:species, is_use_grch37: (this.is_use_grch37 && (species === "Homo_sapiens")), sqantiData:this.sqantiData};
             this.modal.uploadData.show = false;
             this.selectedView = 'Main';
             // uncomment this line to dump the json to the dev console in chrome:

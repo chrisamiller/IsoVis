@@ -19,7 +19,7 @@ import * as d3 from 'd3';
 import {put_in_svg, rect, line} from "~/assets/svg_utils";
 
 export default {
-    props: ["baseAxis", "isoformList"],
+    props: ["baseAxis", "isoformList", "sqantiData"],
     
     data: () => {
         return {
@@ -490,11 +490,22 @@ export default {
                 let leftVal = (calculateLeftVal(clientX) - boundary.left + padding + 7);
                 let topVal = (clientY - boundary.top + padding + 5);
 
-                let tooltip_text = `Transcript: ${shown_transcript_id}\r\nExon #${shown_exon_number} / ${shown_total_exons}\r\nExonic region #${shown_exonic_region_number} / ${shown_total_exonic_regions}\r\nExon range: ${shown_exon_start} - ${shown_exon_end}`;
+                let sqanti_text = '';
+                let sqanti_html = '';
+                if (self.sqantiData && self.sqantiData.data && self.sqantiData.data[shown_transcript_id]) {
+                    const sq = self.sqantiData.data[shown_transcript_id];
+                    const sc  = self.sqantiData.cats[sq[0]];
+                    const orf = sq[3] !== null ? sq[3] : 'N/A';
+                    const nmd = sq[4] ? 'TRUE' : 'FALSE';
+                    sqanti_text = `\r\nStructural category: ${sc}\r\ncDNA length: ${sq[1]}\r\nNum exons: ${sq[2]}\r\nORF length: ${orf}\r\nPredicted NMD: ${nmd}`;
+                    sqanti_html = `Structural category: ${sc}<br>cDNA length: ${sq[1]}<br>Num exons: ${sq[2]}<br>ORF length: ${orf}<br>Predicted NMD: ${nmd}<br>`;
+                }
+
+                let tooltip_text = `Transcript: ${shown_transcript_id}\r\nExon #${shown_exon_number} / ${shown_total_exons}\r\nExonic region #${shown_exonic_region_number} / ${shown_total_exonic_regions}\r\nExon range: ${shown_exon_start} - ${shown_exon_end}${sqanti_text}`;
                 let event = new CustomEvent("set_isoformstack_tooltip_text", {detail: tooltip_text});
                 document.dispatchEvent(event);
 
-                tooltip.html(`Transcript: ${shown_transcript_id}<br>Exon #${shown_exon_number} / ${shown_total_exons}<br>Exonic region #${shown_exonic_region_number} / ${shown_total_exonic_regions}<br>Exon range: ${shown_exon_start} - ${shown_exon_end}<br>(Click on the exon to copy the text in this tooltip)<br>`)
+                tooltip.html(`Transcript: ${shown_transcript_id}<br>Exon #${shown_exon_number} / ${shown_total_exons}<br>Exonic region #${shown_exonic_region_number} / ${shown_total_exonic_regions}<br>Exon range: ${shown_exon_start} - ${shown_exon_end}<br>${sqanti_html}(Click on the exon to copy the text in this tooltip)<br>`)
                     .style("visibility", "visible")
                     .style("left", leftVal + "px").style("top", topVal + "px");
 
