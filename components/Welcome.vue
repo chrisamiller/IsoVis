@@ -81,15 +81,6 @@ export default
     },
 
     methods: {
-        // Parent or sibling components are in charge of showing demo/data upload, so request these.
-        requestDemo() {
-            this.$root.$emit("request_show_demo");
-        },
-
-        requestDataUpload() {
-            this.$root.$emit("request_data_upload");
-        },
-
         loadDataFromServer() {
             this.$root.$emit("load_data_from_server");
         },

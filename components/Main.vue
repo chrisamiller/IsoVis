@@ -71,9 +71,6 @@ Requires mainData object which is used here to update the relevant data other co
         <b-button v-show="heatmap_data_exists && show_heatmap_column" variant="primary" size="sm" @click="setShowStack(!show_stack)">
             {{show_stack ? "Hide stack" : "Show stack"}}
         </b-button>
-        <b-button v-show="!mainData.heatmapData" variant="warning" size="sm" class="ml-2" @click="requestHeatmapDataUpload()">
-            Add isoform heatmap
-        </b-button>
         <b-dropdown v-if="heatmap_data_exists" text="Heatmap options" class="ml-2" size="sm" variant="dark">
             <b-dropdown-item v-if="show_stack" @click="setShowHeatmapColumn(!show_heatmap_column)" v-b-tooltip.hover.right="'Display a column of heatmaps'">
                 Show heatmap column<b-icon-check v-if="show_heatmap_column" variant="success"></b-icon-check>
@@ -778,13 +775,6 @@ export default
                 this.controller.abort();
         },
 
-        addHeatmapData()
-        {
-            this.setShowIsoformHeatmap(true);
-            this.setShowHeatmapColumn(true);
-            this.buildHeatmapComponent();
-        },
-  
         onEnd(evt)
         {
             let orig_isoformlist = JSON.parse(JSON.stringify(this.mainData.isoformData.isoformList));
@@ -2296,11 +2286,6 @@ export default
             this.hide_isoform_heatmap_labels = state;
             this.$refs.heatmapLegendComponent.hide_isoform_heatmap_labels = state;
             this.resizePage();
-        },
-
-        requestHeatmapDataUpload()
-        {
-            this.$root.$emit("request_heatmap_data_upload");
         },
 
         setShowOrfs(state)

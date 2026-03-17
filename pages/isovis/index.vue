@@ -62,34 +62,6 @@ the exact state of that page from the previous state.
         </b-row>
     </footer>
 
-    <!-- Data upload modal -->
-    <b-modal v-model="modal.uploadData.show" size="md" title="Upload data" hide-footer>
-        <p>Upload your own data here to visualize.
-            <b-link href="help_upload/" target="_blank">More info...</b-link>
-        </p>
-        <b-form @submit="handleFileUpload" @submit.stop.prevent inline>
-            <em><b>Stack data</b> file (.gff/.gtf/.bed) (<b>required</b>, max. 2 GB)</em>
-            <b-form-file v-model="modal.uploadData.stackFile" no-drop accept=".gtf, .gff, .gff2, .gff3, .bed, .bed4, .bed5, .bed6, .bed7, .bed8, .bed9, .bed12"></b-form-file>
-            <em class="mt-3"><b>Heatmap data</b> file (.csv/.txt) (optional, max. 2 GB)</em>
-            <b-form-file v-model="modal.uploadData.heatmapFile" no-drop accept=".csv, .txt"></b-form-file>
-            <em class="mt-3" v-show="is_show_rna_modif_upload_options"><b>RNA modifications data</b> file (.bed) (optional, max. 500 MB)</em>
-            <b-form-file v-show="is_show_rna_modif_upload_options" v-model="modal.uploadData.rnaModifFile" no-drop accept=".bed, .bed4, .bed5, .bed6, .bed7, .bed8, .bed9, .bed12"></b-form-file>
-            <em class="mt-3" v-show="is_show_rna_modif_upload_options"><b>RNA modification level data</b> file (.csv/.txt) (optional but requires RNA modifications data file, max. 500 MB)</em>
-            <b-form-file v-show="is_show_rna_modif_upload_options" v-model="modal.uploadData.rnaModifLevelFile" no-drop accept=".csv, .txt"></b-form-file>
-            <em class="mt-3"><b>Species</b> (default: Homo_sapiens)</em>
-            <b-form-input v-model="enteredSpecies" list="acceptedSpecies" class="mb-3" style="width: 100%"></b-form-input>
-            <b-form-datalist id="acceptedSpecies">
-                <option v-for="ensemblSpecies in ensemblSpeciesList" :key="ensemblSpecies">{{ ensemblSpecies }}</option>
-            </b-form-datalist>
-            <b-form-checkbox v-model="is_show_rna_modif_upload_options">Show RNA modifications data upload options (ALPHA)</b-form-checkbox>
-            <b-form-checkbox v-model="is_use_grch37">Use GRCh37 (hg19) instead of GRCh38 (hg38)</b-form-checkbox>
-        </b-form>
-        <b-form inline class="float-right mt-3">
-            <b-button @click="modal.uploadData.show=false" variant="dark">Cancel</b-button>
-            <b-button @click="handleFileUpload" variant="primary" class="ml-2">Apply</b-button>
-        </b-form>
-    </b-modal>
-
     <!-- Gene selection modal -->
     <b-modal v-model="modal.selectGene.show" size="md" title="Select a gene" hide-footer no-close-on-backdrop no-close-on-esc>
         <p>More than one gene is found in the stack data file. Please select the gene you would like to visualize.</p>
@@ -102,36 +74,6 @@ the exact state of that page from the previous state.
     <!-- No matching gene selected -->
     <b-modal v-model="modal.noMatchingGene.show" size="md" title="No matching gene found" hide-footer>
         <p>No matching gene found in the stack data file. Please select a gene from the list.</p>
-    </b-modal>
-
-    <!-- Heatmap data upload modal -->
-    <b-modal v-model="modal.heatmapUploadData.show" size="md" title="Upload heatmap data" hide-footer>
-        <p>Upload your own data here to visualize.
-            <b-link href="help_upload/" target="_blank">More info...</b-link>
-        </p>
-        <b-form inline>
-            <em><b>Heatmap data</b> file (.csv/.txt) (max. 2 GB)</em> 
-            <b-form-file v-model="modal.heatmapUploadData.heatmapFile" no-drop accept=".csv, .txt"></b-form-file>
-        </b-form>
-        <b-form inline class="float-right mt-3">
-            <b-button @click="modal.heatmapUploadData.show=false" variant="dark">Cancel</b-button>
-            <b-button @click="handleHeatmapFileUpload" variant="primary" class="ml-2">Apply</b-button>
-        </b-form>
-    </b-modal>
-
-    <!-- Heatmap2 data upload modal -->
-    <b-modal v-model="modal.heatmap2UploadData.show" size="md" title="Upload heatmap2 data" hide-footer>
-        <p>Upload your own data here to visualize.
-            <b-link href="help_upload/" target="_blank">More info...</b-link>
-        </p>
-        <b-form inline>
-            <em><b>Heatmap2 data</b> file (.csv/.txt) (max. 2 GB)</em> 
-            <b-form-file v-model="modal.heatmap2UploadData.heatmap2File" no-drop accept=".csv, .txt"></b-form-file>
-        </b-form>
-        <b-form inline class="float-right mt-3">
-            <b-button @click="modal.heatmap2UploadData.show=false" variant="dark">Cancel</b-button>
-            <b-button @click="handleHeatmap2FileUpload" variant="primary" class="ml-2">Apply</b-button>
-        </b-form>
     </b-modal>
 
     <!-- Loading modal -->
@@ -220,16 +162,6 @@ export default
                 {
                     show: false,
                 },
-                heatmapUploadData:
-                {
-                    show: false,
-                    heatmapFile: null,
-                },
-                heatmap2UploadData:
-                {
-                    show: false,
-                    heatmap2File: null,
-                },
                 loading:
                 {
                     show: false,
@@ -283,26 +215,6 @@ export default
     },
 
     methods: {
-        // When the user requests demo data, this function fetches it from /static/ and populates mainData.
-        // Since Main.vue is watching a change in mainData, it should update automatically and show the demo.
-        async showDemo()
-        {
-            // let compressed = await fetch("/demo_data.json.gz").then(
-            let compressed = await fetch("/out.json.gz").then(
-                res => res.blob()
-            );
-            let decompressor = new DecompressionStream("gzip");
-            let decompressed = compressed.stream().pipeThrough(decompressor);
-            new Response(decompressed).json().then((data) => {
-                this.selectedView = 'Main';
-
-                // Add transcript ids to heatmap data
-                data.secondaryData.transcriptOrder = JSON.parse(JSON.stringify(data.primaryData.transcriptOrder));
-                this.mainData = {isoformData:data.primaryData, heatmapData:data.secondaryData, heatmap2Data:data.secondaryData, canonData:data.canonData, 
-                    proteinData:data.proteinData, selectedGene:data.selectedGene, geneLabel:data.geneLabel, demoData:true, species:"Homo_sapiens", is_use_grch37: false};
-            });
-        },
-
         async handleLoadDataFromServer() {
             try {
                 // Create File objects from the server-side files
@@ -320,12 +232,15 @@ export default
                 const heatmapDecompressedBlob = await new Response(heatmapDecompressedStream).blob();
                 const serverHeatmapFile = new File([heatmapDecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
 
+                let serverHeatmap2File = null;
                 const heatmap2Response = await fetch('/aml_data_short.txt.gz');
-                const heatmap2Blob = await heatmap2Response.blob();
-                const heatmap2Decompressor = new DecompressionStream("gzip");
-                const heatmap2DecompressedStream = heatmap2Blob.stream().pipeThrough(heatmap2Decompressor);
-                const heatmap2DecompressedBlob = await new Response(heatmap2DecompressedStream).blob();
-                const serverHeatmap2File = new File([heatmap2DecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
+                if (heatmap2Response.ok) {
+                    const heatmap2Blob = await heatmap2Response.blob();
+                    const heatmap2Decompressor = new DecompressionStream("gzip");
+                    const heatmap2DecompressedStream = heatmap2Blob.stream().pipeThrough(heatmap2Decompressor);
+                    const heatmap2DecompressedBlob = await new Response(heatmap2DecompressedStream).blob();
+                    serverHeatmap2File = new File([heatmap2DecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
+                }
 
                 // Set up the data objects
                 this.modal.uploadData.stackFile = serverGtfFile;
@@ -341,14 +256,6 @@ export default
                 console.error('Error loading server data:', error);
                 this.$bvModal.msgBoxOk('Error loading data from server. Please try again or contact support.');
             }
-        },
-
-        downloadDemo()
-        {
-            var link = document.createElement('a');
-            link.href = "/demo_data.zip";
-            link.download = "demo_data.zip";
-            link.click();
         },
 
         changeZoom()
@@ -397,7 +304,6 @@ export default
             this.modal.uploadData.heatmapFile = null;
             this.modal.uploadData.rnaModifFile = null;
             this.modal.uploadData.rnaModifLevelFile = null;
-            this.modal.heatmapUploadData.heatmapFile = null;
 
             this.$refs.componentMain.abortFetches();
             this.mainData = {init: false, isoformData:{}, heatmapData:null, canonData:{}, selectedGene:'', geneLabel:'', demoData:false, species:"Homo_sapiens", is_use_grch37:false};
@@ -592,9 +498,9 @@ export default
 
             // Read the stack file
             // this.model.uploadData.stackFile = "/idh1.gtf";
-            let file = this.modal.uploadData.stackFile; 
-            let hfile = (this.modal.heatmapUploadData.heatmapFile) ? this.modal.heatmapUploadData.heatmapFile : this.modal.uploadData.heatmapFile;
-            let h2file = (this.modal.heatmap2UploadData.heatmap2File) ? this.modal.heatmap2UploadData.heatmap2File : this.modal.uploadData.heatmap2File;
+            let file = this.modal.uploadData.stackFile;
+            let hfile = this.modal.uploadData.heatmapFile;
+            let h2file = this.modal.uploadData.heatmap2File;
             // console.log(this.modal.uploadData.stackFile)
             // let file = "/idh1.gtf"
             // console.log("assigning file")
@@ -652,10 +558,7 @@ export default
                 {
                     this.$bvModal.msgBoxOk(heatmapData.error);
                     this.selectedGene = null;
-                    if (this.modal.heatmapUploadData.heatmapFile)
-                        this.modal.heatmapUploadData.heatmapFile = null;
-                    else
-                        this.modal.uploadData.heatmapFile = null;
+                    this.modal.uploadData.heatmapFile = null;
                     return;
                 }
                 else if (heatmapData.warning)
@@ -674,17 +577,14 @@ export default
                 {
                     this.$bvModal.msgBoxOk(heatmap2Data.error);
                     this.selectedGene = null;
-                    if (this.modal.heatmapUploadData.heatmapFile)
-                        this.modal.heatmapUploadData.heatmapFile = null;
-                    else
-                        this.modal.uploadData.heatmapFile = null;
+                    this.modal.uploadData.heatmap2File = null;
                     return;
                 }
-                else if (heatmapData.warning)
-                    this.$bvModal.msgBoxOk(heatmapData.warning);
+                else if (heatmap2Data.warning)
+                    this.$bvModal.msgBoxOk(heatmap2Data.warning);
 
                 // Add transcript ids to heatmap data
-                heatmapData.transcriptOrder = JSON.parse(JSON.stringify(isoformData.transcriptOrder));
+                heatmap2Data.transcriptOrder = JSON.parse(JSON.stringify(isoformData.transcriptOrder));
             }
 
             this.reset_loading_popup();
@@ -742,64 +642,6 @@ export default
 
         },
 
-        async handleHeatmapFileUpload()
-        {
-            let hfile = this.modal.heatmapUploadData.heatmapFile;
-            let transcript_ids_of_gene = Object.keys(this.mainData.isoformData.transcripts);
-            let heatmapData = new SecondaryData(hfile, this.selectedGene, transcript_ids_of_gene);
-
-            this.modal.loading.show = true;
-            await heatmapData.parseFile();
-            this.reset_loading_popup();
-
-            if (!heatmapData.valid)
-            {
-                this.$bvModal.msgBoxOk(heatmapData.error);
-                this.modal.heatmapUploadData.heatmapFile = null;
-                return;
-            }
-            else if (heatmapData.warning)
-            {
-                this.$bvModal.msgBoxOk(heatmapData.warning);
-            }
-
-            heatmapData.transcriptOrder = JSON.parse(JSON.stringify(this.mainData.isoformData.transcriptOrder));
-            this.mainData.heatmapData = JSON.parse(JSON.stringify(heatmapData));
-
-            this.$refs.componentMain.addHeatmapData();
-            this.modal.heatmapUploadData.show = false;
-            this.selectedView = 'Main';
-        },
-
-        async handleHeatmap2FileUpload()
-        {
-            let hfile = this.modal.heatmap2UploadData.heatmap2File;
-            let transcript_ids_of_gene = Object.keys(this.mainData.isoformData.transcripts);
-            let heatmapData = new SecondaryData(hfile, this.selectedGene, transcript_ids_of_gene);
-
-            this.modal.loading.show = true;
-            await heatmap2Data.parseFile();
-            this.reset_loading_popup();
-
-            if (!heatmap2Data.valid)
-            {
-                this.$bvModal.msgBoxOk(heatmap2Data.error);
-                this.modal.heatmap2UploadData.heatmap2File = null;
-                return;
-            }
-            else if (heatmap2Data.warning)
-            {
-                this.$bvModal.msgBoxOk(heatmap2Data.warning);
-            }
-
-            heatmap2Data.transcriptOrder = JSON.parse(JSON.stringify(this.mainData.isoformData.transcriptOrder));
-            this.mainData.heatmap2Data = JSON.parse(JSON.stringify(heatmapData));
-
-            this.$refs.componentMain.addHeatmap2Data();
-            this.modal.heatmap2UploadData.show = false;
-            this.selectedView = 'Main';
-        },
-
         async getReleaseNotes()
         {
             let res = await fetch("/ReleaseNotes.json");
@@ -853,20 +695,8 @@ export default
             let value = e.detail;
             this.modal.loading.value = value;
         });
-        this.$root.$on('request_show_demo', () => {
-            this.showDemo();
-        });
-        this.$root.$on('request_data_upload', () => {
-            this.modal.uploadData.show = true;
-        });
         this.$root.$on('load_data_from_server', () => {
             this.handleLoadDataFromServer();
-        });
-        this.$root.$on('request_heatmap_data_upload', () => {
-            this.modal.heatmapUploadData.show = true;
-        });
-        this.$root.$on('request_heatmap2_data_upload', () => {
-            this.modal.heatmap2UploadData.show = true;
         });
     }
 }
