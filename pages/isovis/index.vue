@@ -197,7 +197,9 @@ export default
 
             taxon_id: -1,
             ensemblSpeciesList: [],
-            speciesToTaxId: {}
+            speciesToTaxId: {},
+
+            amlGeneJSON: null
         }
     },
 
@@ -217,13 +219,14 @@ export default
     methods: {
         async handleLoadDataFromServer() {
             try {
-                // Create File objects from the server-side files
-                const gtfResponse = await fetch('/aml_data.gtf.gz');
-                const gtfBlob = await gtfResponse.blob();
-                const gtfDecompressor = new DecompressionStream("gzip");
-                const gtfDecompressedStream = gtfBlob.stream().pipeThrough(gtfDecompressor);
-                const gtfDecompressedBlob = await new Response(gtfDecompressedStream).blob();
-                const serverGtfFile = new File([gtfDecompressedBlob], 'aml_data.gtf', { type: 'text/plain' });
+                // Load precomputed compact JSON (replaces the 968 MB GTF)
+                const jsonResponse = await fetch('/aml_data.json.gz');
+                if (!jsonResponse.ok) throw new Error(`Failed to fetch aml_data.json.gz: ${jsonResponse.status}`);
+                const jsonBlob = await jsonResponse.blob();
+                const jsonDecompressor = new DecompressionStream("gzip");
+                const jsonDecompressedStream = jsonBlob.stream().pipeThrough(jsonDecompressor);
+                const jsonText = await new Response(jsonDecompressedStream).text();
+                this.amlGeneJSON = JSON.parse(jsonText);
 
                 const heatmapResponse = await fetch('/aml_data.txt.gz');
                 const heatmapBlob = await heatmapResponse.blob();
@@ -242,15 +245,12 @@ export default
                     serverHeatmap2File = new File([heatmap2DecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
                 }
 
-                // Set up the data objects
-                this.modal.uploadData.stackFile = serverGtfFile;
+                // No stack file needed — gene data comes from amlGeneJSON
+                this.modal.uploadData.stackFile = null;
                 this.modal.uploadData.heatmapFile = serverHeatmapFile;
                 this.modal.uploadData.heatmap2File = serverHeatmap2File;
 
-                // Switch to Main view
                 this.selectedView = 'Main';
-
-                // Process the files
                 await this.handleFileUpload();
             } catch (error) {
                 console.error('Error loading server data:', error);
@@ -509,10 +509,29 @@ export default
             let rna_modif_file = this.modal.uploadData.rnaModifFile;
             let rna_modif_level_file = this.modal.uploadData.rnaModifLevelFile;
 
-            let isoformData = new PrimaryData(file, this.selectedGene, species, (this.is_use_grch37 && (species === "Homo_sapiens")));
+            let isoformData;
 
-            this.modal.loading.show = true;
-            await isoformData.parseFile();
+            if (this.amlGeneJSON)
+            {
+                // Fast path: gene data comes from precomputed JSON, no file parsing needed
+                if (!this.selectedGene)
+                {
+                    // First call — show gene picker populated from JSON keys
+                    this.all_genes = Object.keys(this.amlGeneJSON).sort();
+                    this.filtered_genes = [...this.all_genes];
+                    this.modal.selectGene.show = true;
+                    return;
+                }
+                isoformData = new PrimaryData(null, this.selectedGene, species, (this.is_use_grch37 && (species === "Homo_sapiens")));
+                isoformData.parseJSON(this.selectedGene, this.amlGeneJSON[this.selectedGene]);
+            }
+            else
+            {
+                // Original path: parse GTF/GFF3/BED file
+                isoformData = new PrimaryData(file, this.selectedGene, species, (this.is_use_grch37 && (species === "Homo_sapiens")));
+                this.modal.loading.show = true;
+                await isoformData.parseFile();
+            }
 
             if (!isoformData.valid)
             {

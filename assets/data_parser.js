@@ -956,6 +956,66 @@ export class PrimaryData {
         }
     }
 
+    /**
+     * Populate this PrimaryData from a precomputed compact JSON gene object
+     * (produced by tools/preprocess_gtf.py) instead of parsing a GTF file.
+     *
+     * @param {string} gene  gene ID (uppercase)
+     * @param {object} geneData  { chr, transcripts: { txId: { strand, exons, cds? } } }
+     */
+    parseJSON(gene, geneData)
+    {
+        if (!geneData || !geneData.transcripts)
+        {
+            this.error = `No precomputed data found for gene '${gene}'.`;
+            return;
+        }
+
+        this.gene = gene;
+        this.chromosome = geneData.chr || '';
+        this.transcripts = {};
+        this.geneInfo = {};
+        this.geneInfo[gene] = null;
+
+        for (const [txId, txData] of Object.entries(geneData.transcripts))
+        {
+            const tx = { strand: txData.strand, user_orf: [], exon_count: 0 };
+            for (let i = 0; i < txData.exons.length; i++)
+            {
+                tx[i] = txData.exons[i];
+                tx.exon_count++;
+            }
+            if (txData.cds && txData.cds.length > 0)
+                tx.user_orf = txData.cds.slice();
+            this.transcripts[txId] = tx;
+        }
+
+        if (Object.keys(this.transcripts).length === 0)
+        {
+            this.error = `Gene '${gene}' exists in precomputed data but has no transcripts.`;
+            return;
+        }
+
+        // Same post-processing as the end of parseFile()
+        this.transcriptOrder = prioritiseKnownTranscripts(Object.keys(this.transcripts));
+        this.isoformList = [];
+        for (let i = 0; i < this.transcriptOrder.length; ++i)
+            this.isoformList.push(new Isoform(this.transcriptOrder[i], this.transcripts[this.transcriptOrder[i]]));
+        this.allIsoforms = JSON.parse(JSON.stringify(this.isoformList));
+        this.mergedRanges = mergeRanges(this.isoformList);
+        this.minExons = this.mergedRanges.length;
+        this.start = this.isoformList[0].strand === '+' ?
+            this.mergedRanges[0][0] :
+            this.mergedRanges[this.mergedRanges.length - 1][1];
+        this.end = this.isoformList[0].strand === '+' ?
+            this.mergedRanges[this.mergedRanges.length - 1][1] :
+            this.mergedRanges[0][0];
+        this.width = Math.abs(this.end - this.start);
+        this.strand = this.isoformList[0].strand;
+        this.genes = [gene];
+        this.valid = true;
+    }
+
     exonsFromBED(lines)
     {
         for (let raw_line of lines)
