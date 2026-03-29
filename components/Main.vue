@@ -91,7 +91,7 @@ Requires mainData object which is used here to update the relevant data other co
                 Log2 transform of isoform heatmap<b-icon-check v-if="isoform_heatmap_log_transform" variant="success"></b-icon-check>
             </b-dropdown-item>
             <b-dropdown-item v-if="mainData.heatmapData" @click="swapHeatmap(!alt_heatmap)" v-b-tooltip.hover.right="'Toggle to alternate heatmap'">
-                Switch to alternate heatmap<b-icon-check v-if="alt_heatmap" variant="success"></b-icon-check>
+                Switch to short read heatmap<b-icon-check v-if="alt_heatmap" variant="success"></b-icon-check>
             </b-dropdown-item>
 
         </b-dropdown>
@@ -195,7 +195,7 @@ Requires mainData object which is used here to update the relevant data other co
         <!-- Column 3.3: Nothing -->
         <b-col v-show="heatmap_data_exists && show_heatmap_column" class="col3" :cols="show_stack ? 3 : 9">
             <div v-if="mainData.heatmapData && show_isoform_heatmap" class="text-center mb-1">
-                <a href="#" @click.prevent="$root.$emit('showStackedBarplot')" style="font-size:0.9em;">Abundance Barplot</a>
+                <b-button size="sm" @click="$root.$emit('showStackedBarplot')">Abundance Barplot</b-button>
             </div>
             <HeatmapColorScale v-if="mainData.heatmapData && show_isoform_heatmap" :heatmapData="mainData.heatmapData" :logTransform="isoform_heatmap_log_transform" ref="heatmapColorScaleComponent" class="grid-item p-0 mx-0 my-3 g-0 text-center"></HeatmapColorScale>
         </b-col>
@@ -386,8 +386,9 @@ Requires mainData object which is used here to update the relevant data other co
         <b-col class="col2" :cols="(heatmap_data_exists && show_heatmap_column) ? 6 : 9">
         </b-col>
 
-        <!-- Column 10.3: Nothing -->
-        <b-col v-show="heatmap_data_exists && show_heatmap_column" class="col3" :cols="show_stack ? 3 : 9">
+        <!-- Column 10.3: Short read label (when alt heatmap active) -->
+        <b-col v-show="heatmap_data_exists && show_heatmap_column" class="col3 text-center" :cols="show_stack ? 3 : 9" style="display:flex; align-items:flex-end; justify-content:center; padding-bottom:2px;">
+            <span v-if="alt_heatmap" style="font-size:0.75em; color:#555;">short read data</span>
         </b-col>
 
     </b-row>

@@ -80,7 +80,8 @@ the exact state of that page from the previous state.
     <b-modal v-model="modal.serverLoading.show" size="sm" hide-header hide-footer no-close-on-backdrop no-close-on-esc centered>
         <div class="text-center py-3">
             <b-spinner style="width: 3rem; height: 3rem;" variant="primary"></b-spinner>
-            <p class="mt-3 mb-0">Loading...</p>
+            <p class="mt-3 mb-1">Loading...</p>
+            <p class="mb-0 text-muted" style="font-size:0.8em;">Initial load may take up to 30 seconds</p>
         </div>
     </b-modal>
 
@@ -213,7 +214,8 @@ export default
             ensemblSpeciesList: [],
             speciesToTaxId: {},
 
-            amlGeneJSON: null
+            amlGeneJSON: null,
+            amlHeatmapJSON: null
         }
     },
 
@@ -243,22 +245,14 @@ export default
                 const jsonText = await new Response(jsonDecompressedStream).text();
                 this.amlGeneJSON = JSON.parse(jsonText);
 
-                const heatmapResponse = await fetch('/aml_data.txt.gz');
+                // Precomputed per-gene heatmap JSON (replaces the two raw TSV blobs)
+                const heatmapResponse = await fetch('/aml_heatmap.json.gz');
+                if (!heatmapResponse.ok) throw new Error(`Failed to fetch aml_heatmap.json.gz: ${heatmapResponse.status}`);
                 const heatmapBlob = await heatmapResponse.blob();
                 const heatmapDecompressor = new DecompressionStream("gzip");
-                const heatmapDecompressedStream = heatmapBlob.stream().pipeThrough(heatmapDecompressor);
-                const heatmapDecompressedBlob = await new Response(heatmapDecompressedStream).blob();
-                const serverHeatmapFile = new File([heatmapDecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
-
-                let serverHeatmap2File = null;
-                const heatmap2Response = await fetch('/aml_data_short.txt.gz');
-                if (heatmap2Response.ok) {
-                    const heatmap2Blob = await heatmap2Response.blob();
-                    const heatmap2Decompressor = new DecompressionStream("gzip");
-                    const heatmap2DecompressedStream = heatmap2Blob.stream().pipeThrough(heatmap2Decompressor);
-                    const heatmap2DecompressedBlob = await new Response(heatmap2DecompressedStream).blob();
-                    serverHeatmap2File = new File([heatmap2DecompressedBlob], 'aml_data.txt', { type: 'text/plain' });
-                }
+                const heatmapStream = heatmapBlob.stream().pipeThrough(heatmapDecompressor);
+                const heatmapText = await new Response(heatmapStream).text();
+                this.amlHeatmapJSON = JSON.parse(heatmapText);
 
                 // SQANTI data — optional, fail silently
                 try {
@@ -274,10 +268,10 @@ export default
                     console.warn('SQANTI data not available:', e);
                 }
 
-                // No stack file needed — gene data comes from amlGeneJSON
+                // No stack/heatmap files needed — data comes from precomputed JSONs
                 this.modal.uploadData.stackFile = null;
-                this.modal.uploadData.heatmapFile = serverHeatmapFile;
-                this.modal.uploadData.heatmap2File = serverHeatmap2File;
+                this.modal.uploadData.heatmapFile = null;
+                this.modal.uploadData.heatmap2File = null;
 
                 this.selectedView = 'Main';
                 await this.handleFileUpload();
@@ -449,7 +443,10 @@ export default
             const signal = this.controller.signal;
 
             // Search for Ensembl gene IDs by gene symbol from mygene.info
-            let data = await fetch(`https://mygene.info/v3/query?species=${this.taxon_id}&fields=symbol,ensembl.gene&q=symbol:${this.enteredGene}*&size=30`, { signal })
+            // Some short/common gene symbols match hundreds of entries and need a larger result window
+            const LARGE_RESULT_GENES = new Set(['AR','PC','KL','ZNF7','ZNF2','CS','CP','ADA','SI','ZNF3','TH','C2','MAG','ZNF8','TNF','GPR1','DEFB1','USP1','GAL','PLEK']);
+            const searchSize = LARGE_RESULT_GENES.has(this.enteredGene.toUpperCase()) ? 200 : 30;
+            let data = await fetch(`https://mygene.info/v3/query?species=${this.taxon_id}&fields=symbol,ensembl.gene&q=symbol:${this.enteredGene}*&size=${searchSize}`, { signal })
                 .then(res => res.json())
                 .catch(() => {});
 
@@ -598,9 +595,20 @@ export default
 
             let transcript_ids_of_gene = Object.keys(isoformData.transcripts);
 
-            let heatmapData = (hfile) ? new SecondaryData(hfile, this.selectedGene, transcript_ids_of_gene) : null;
-            if (heatmapData)
+            let heatmapData = null;
+            if (this.amlHeatmapJSON)
             {
+                // Fast path: use precomputed per-gene JSON, no file scanning needed
+                heatmapData = new SecondaryData(null, this.selectedGene, transcript_ids_of_gene);
+                const geneData = (this.amlHeatmapJSON.genes && this.amlHeatmapJSON.genes[this.selectedGene]) || null;
+                heatmapData.parsePrecomputed(this.amlHeatmapJSON.cols, geneData);
+                if (heatmapData.warning)
+                    this.$bvModal.msgBoxOk(heatmapData.warning);
+                heatmapData.transcriptOrder = JSON.parse(JSON.stringify(isoformData.transcriptOrder));
+            }
+            else if (hfile)
+            {
+                heatmapData = new SecondaryData(hfile, this.selectedGene, transcript_ids_of_gene);
                 await heatmapData.parseFile();
                 this.reset_loading_popup();
 
@@ -614,12 +622,22 @@ export default
                 else if (heatmapData.warning)
                     this.$bvModal.msgBoxOk(heatmapData.warning);
 
-                // Add transcript ids to heatmap data
                 heatmapData.transcriptOrder = JSON.parse(JSON.stringify(isoformData.transcriptOrder));
             }
-            let heatmap2Data = (h2file) ? new SecondaryData(h2file, this.selectedGene, transcript_ids_of_gene) : null;
-            if (heatmap2Data)
+
+            let heatmap2Data = null;
+            if (this.amlHeatmapJSON)
             {
+                // Fast path: use precomputed per-gene JSON
+                heatmap2Data = new SecondaryData(null, this.selectedGene, transcript_ids_of_gene);
+                const gene2Data = (this.amlHeatmapJSON.genes2 && this.amlHeatmapJSON.genes2[this.selectedGene]) || null;
+                heatmap2Data.parsePrecomputed(this.amlHeatmapJSON.cols, gene2Data);
+                // Warning already shown for heatmapData above; suppress duplicate
+                heatmap2Data.transcriptOrder = JSON.parse(JSON.stringify(isoformData.transcriptOrder));
+            }
+            else if (h2file)
+            {
+                heatmap2Data = new SecondaryData(h2file, this.selectedGene, transcript_ids_of_gene);
                 await heatmap2Data.parseFile();
                 this.reset_loading_popup();
 
@@ -633,7 +651,6 @@ export default
                 else if (heatmap2Data.warning)
                     this.$bvModal.msgBoxOk(heatmap2Data.warning);
 
-                // Add transcript ids to heatmap data
                 heatmap2Data.transcriptOrder = JSON.parse(JSON.stringify(isoformData.transcriptOrder));
             }
 

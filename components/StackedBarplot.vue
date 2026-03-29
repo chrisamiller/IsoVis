@@ -49,6 +49,9 @@ export default {
         },
         absoluteMode() {
             if (this.modalVisible) this.$nextTick(() => this.buildBarplot());
+        },
+        heatmapData() {
+            if (this.modalVisible) this.$nextTick(() => this.buildBarplot());
         }
     },
 

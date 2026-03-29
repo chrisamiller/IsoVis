@@ -96,6 +96,82 @@ If you are using a PowerShell prompt rather than a `cmd` prompt, run this comman
 $env:NODE_OPTIONS="--openssl-legacy-provider"
 ```
 
+## Preparing data for the AML "Load data" button
+
+The **Load data** button on the IsoVis home page loads a set of precomputed files from the `static/` directory. These files are generated from raw bioinformatics outputs using the scripts in the `tools/` directory. All scripts require Python 3 (no extra packages beyond the standard library).
+
+### Required input files
+
+| File | Description |
+|------|-------------|
+| GTF / GFF3 | Transcript structures (one gene per run, or whole genome) |
+| SQANTI3 classification TSV *(optional)* | Per-transcript structural metadata from SQANTI3 |
+| Expression / abundance TSV(s) *(optional)* | Sample-level expression values (one row per transcript, tab-separated, first column `transcript_ID`) |
+
+---
+
+### Step 1 — Preprocess the GTF
+
+Convert a GTF (or GFF3) into the compact per-gene JSON that IsoVis loads instead of the full GTF file. This eliminates the need to decompress and scan the entire GTF on every page load.
+
+```bash
+python3 tools/preprocess_gtf.py \
+    input.gtf.gz \
+    static/aml_data.json.gz
+```
+
+- Input can be plain (`.gtf`, `.gff3`) or gzip-compressed (`.gtf.gz`, `.gff3.gz`).
+- Output should be placed in `static/` so it is served at `/aml_data.json.gz`.
+
+---
+
+### Step 2 — Preprocess SQANTI3 data *(optional)*
+
+If you have a SQANTI3 classification file, convert it to a compact JSON of per-transcript structural metadata. This data is displayed in a tooltip when hovering over transcript exons in the viewer.
+
+```bash
+python3 tools/preprocess_sqanti.py \
+    input_classification.txt \
+    static/aml_sqanti.json.gz \
+    static/aml_data.json.gz        # optional: filter to transcripts in the GTF JSON
+```
+
+- The third argument is optional. When provided, only transcripts present in the GTF JSON are written, which substantially reduces file size.
+- Output should be placed in `static/` so it is served at `/aml_sqanti.json.gz`.
+- If this file is absent, the application loads without transcript tooltips (graceful degradation).
+
+---
+
+### Step 3 — Preprocess expression / heatmap data *(optional)*
+
+Convert one or two sample-level expression TSV files into a single per-gene JSON. The application looks for a main normalised expression file and an optional integer counts file; both must share the same column layout.
+
+```bash
+python3 tools/preprocess_heatmap.py \
+    static/aml_data.json.gz \
+    normalised_expression.txt.gz \
+    integer_counts.txt.gz \
+    static/aml_heatmap.json.gz
+```
+
+- The first argument is the GTF JSON produced in Step 1 — it supplies the transcript-to-gene mapping.
+- The second argument is the primary (normalised) heatmap file; values are rounded to 3 decimal places.
+- The third argument is the secondary (integer counts) heatmap file. If you only have one expression file, you may pass the same file twice.
+- Output should be placed in `static/` so it is served at `/aml_heatmap.json.gz`.
+- If this file is absent, the heatmap panel will not be shown (graceful degradation).
+
+---
+
+### Expected `static/` files after preprocessing
+
+| File | Required | Description |
+|------|----------|-------------|
+| `aml_data.json.gz` | Yes | Per-gene transcript structures from the GTF |
+| `aml_sqanti.json.gz` | No | Per-transcript SQANTI3 metadata |
+| `aml_heatmap.json.gz` | No | Per-gene expression values (both heatmap rows) |
+
+---
+
 ## Running IsoVis locally
 
 IsoVis is served at `http://localhost:3000/`. There are two ways to run IsoVis:

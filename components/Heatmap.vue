@@ -218,10 +218,10 @@ export default {
             cellDim = 50,
             cellPad = 1;
             let colour = {
-                heatmapLow: '#1170aa', // '#962705',
-                heatmapMid: '#fff8e6', // 'white',
-                heatmapHigh: '#fc7d0b',
-                invalid: '#c2c2c2'
+                heatmapLow: '#fff7fb',
+                heatmapMid: '#67a9cf',
+                heatmapHigh: '#016c59',
+                invalid: '#fff7fb'
             };
 
             if (!this.show_isoform_heatmap)

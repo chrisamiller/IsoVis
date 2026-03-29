@@ -1582,7 +1582,7 @@ export class SecondaryData {
 
         if (this.transcripts.length === 0)
         {
-            this.warning = "The heatmap file does not contain any information on the transcripts of the gene to be visualized.";
+            this.warning = "Warning: there is no expression data for this gene. The heatmap will be blank.";
             this.average = NaN;
             this.logAverage = NaN;
             // this.median = NaN;
@@ -1749,12 +1749,95 @@ export class SecondaryData {
         return text;
     }
 
+    /**
+     * Populate this instance from precomputed per-gene JSON data, bypassing file I/O.
+     *
+     * @param {Array<string>} cols  - The 71 sample-name columns (no transcript_id entry).
+     * @param {Object|null}   geneData - { TX_ID: [val, ...] } for the selected gene, or null.
+     */
+    parsePrecomputed(cols, geneData) {
+        // Mirror the shape that parseFile() produces so downstream code works unchanged.
+        this.samples = ['transcript_id', ...cols];
+        this.transcript_id_colnum = 0;
+        this.gene_id_colnum = -1;
+
+        this.transcripts = [];
+        this.maxValue = NaN;
+        this.logMax   = NaN;
+        this.minValue = NaN;
+        this.logMin   = NaN;
+        this.sum = 0;
+        this.num_nonzerovals = 0;
+        this.counts = [];
+        this.export    = [];
+        this.logExport = [];
+
+        if (geneData) {
+            for (const [txId, values] of Object.entries(geneData)) {
+                this.transcripts.push(txId);
+                for (let j = 0; j < cols.length; j++) {
+                    const sample   = cols[j];
+                    const value    = values[j];
+                    const logValue = Math.log2(value + 1);
+
+                    if (value) {
+                        this.sum += value;
+                        this.num_nonzerovals++;
+                        this.counts.push(value);
+                    }
+
+                    if (isNaN(this.maxValue) || value > this.maxValue) this.maxValue = value;
+                    if (isNaN(this.logMax)   || logValue > this.logMax) this.logMax   = logValue;
+                    if (isNaN(this.minValue) || value < this.minValue) this.minValue = value;
+                    if (isNaN(this.logMin)   || logValue < this.logMin) this.logMin   = logValue;
+
+                    this.export.push({transcript: txId, sample, value});
+                    this.logExport.push({transcript: txId, sample, value: logValue});
+                }
+            }
+        }
+
+        if (this.transcripts.length === 0) {
+            this.warning  = "Warning: there is no expression data for this gene. The heatmap will be blank.";
+            this.average    = NaN;
+            this.logAverage = NaN;
+        } else {
+            if (this.num_nonzerovals === 0) this.num_nonzerovals = 1;
+            this.average    = this.sum / this.num_nonzerovals;
+            this.logAverage = Math.log2(this.average + 1);
+        }
+
+        this.allIsoforms = JSON.parse(JSON.stringify(this.transcripts));
+
+        // Derive column dividers and group labels from sample-name prefixes.
+        const _groups   = [];
+        const _dividers = [];
+        let _currentGroup = null;
+        for (let idx = 0; idx < cols.length; idx++) {
+            const prefix = cols[idx].split('-')[0];
+            if (prefix !== _currentGroup) {
+                if (_currentGroup !== null) _dividers.push(idx);
+                if (_groups.length > 0) _groups[_groups.length - 1].end = idx - 1;
+                _groups.push({ name: prefix, start: idx });
+                _currentGroup = prefix;
+            }
+        }
+        if (_groups.length > 0) {
+            _groups[_groups.length - 1].end = cols.length - 1;
+            for (const g of _groups) g.midpoint = Math.floor((g.start + g.end) / 2);
+        }
+        this.columnDividers = _dividers;
+        this.groups = _groups;
+
+        this.valid = true;
+    }
+
     updateTranscriptOrder(transcripts) {
         /**
          * Update transcript order after reordering / removing / adding isoforms.
          * Only one property holds this here, so simple to update this property.
-         * 
-         * @param {Array<string>} transcripts: list of transcripts 
+         *
+         * @param {Array<string>} transcripts: list of transcripts
          */
         this.transcripts = transcripts;
     }
