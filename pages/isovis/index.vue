@@ -31,6 +31,12 @@ the exact state of that page from the previous state.
 
             <!-- Right aligned nav items -->
             <b-navbar-nav class="ml-auto">
+                <b-dropdown text="Data" variant="dark" right class="ml-2">
+                    <b-dropdown-item href="/aml_data.gtf.gz" download>Download Combined GTF</b-dropdown-item>
+                    <b-dropdown-item href="/aml_data.txt.gz" download>Download Expression Matrix (long-read)</b-dropdown-item>
+                    <b-dropdown-item href="/aml_data_short.txt.gz" download>Download Expression Matrix (short-read)</b-dropdown-item>
+                    <b-dropdown-item href="https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs000159" target="_blank">Access Sequence Data (dbGaP phs00159)</b-dropdown-item>
+                </b-dropdown>
                 <b-dropdown text="About" variant="dark" right class="ml-2">
                     <b-dropdown-item href="isovis/about/" target="_blank">About AML-IsoVis</b-dropdown-item>
                     <b-dropdown-item @click="modal.citation.show=true">How to cite us</b-dropdown-item>
