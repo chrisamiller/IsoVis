@@ -377,29 +377,33 @@ export default
         buildDatalist()
         {
             let gene_ids = Object.keys(this.options);
-            let symbol_options = [];
-            let id_options = [];
+            let symbol_entries = [];
+            let id_entries = [];
 
             for (let gene_id of gene_ids)
             {
                 let symbol = this.options[gene_id];
                 if (!symbol)
-                    id_options.push(`<option>${gene_id}</option>`);
+                    id_entries.push(gene_id);
                 else
-                    symbol_options.push(`<option>${symbol} (${gene_id})</option>`);
+                    symbol_entries.push(`${symbol} (${gene_id})`);
             }
 
-            symbol_options.sort();
-            id_options.sort();
-
-            // Sorted gene symbol + ID options come first, then sorted gene ID options come later
-            let new_options = symbol_options.concat(id_options);
+            symbol_entries.sort();
+            id_entries.sort();
 
             let gene_ids_list = document.getElementById("geneIds");
             if (!gene_ids_list)
                 return;
 
-            gene_ids_list.innerHTML = new_options;
+            gene_ids_list.innerHTML = '';
+            // Sorted gene symbol + ID options come first, then sorted gene ID options come later
+            for (let text of symbol_entries.concat(id_entries))
+            {
+                let opt = document.createElement('option');
+                opt.value = text;
+                gene_ids_list.appendChild(opt);
+            }
         },
 
         // Include at most 100 genes from the genes in the stack data file that begin with the user's input (case-insensitive)
@@ -447,8 +451,19 @@ export default
             const LARGE_RESULT_GENES = new Set(['AR','PC','KL','ZNF7','ZNF2','CS','CP','ADA','SI','ZNF3','TH','C2','MAG','ZNF8','TNF','GPR1','DEFB1','USP1','GAL','PLEK']);
             const searchSize = LARGE_RESULT_GENES.has(this.enteredGene.toUpperCase()) ? 200 : 30;
             let data = await fetch(`https://mygene.info/v3/query?species=${this.taxon_id}&fields=symbol,ensembl.gene&q=symbol:${this.enteredGene}*&size=${searchSize}`, { signal })
-                .then(res => res.json())
-                .catch(() => {});
+                .then(res => {
+                    if (!res.ok) throw new Error('network');
+                    return res.json();
+                })
+                .catch(err => {
+                    if (err.name !== 'AbortError')
+                        this.$bvToast.toast('Gene symbol lookup failed. The search box may show incomplete results. Lookups via ENSG ids should still work.', {
+                            title: 'Search unavailable',
+                            variant: 'warning',
+                            solid: true,
+                            autoHideDelay: 5000,
+                        });
+                });
 
             if (data && data.total > 0)
             {
@@ -711,12 +726,17 @@ export default
 
         async getReleaseNotes()
         {
-            let res = await fetch("/ReleaseNotes.json");
-            res.json().then((data) => {
+            try {
+                let res = await fetch("/ReleaseNotes.json");
+                if (!res.ok)
+                    return;
+                const data = await res.json();
                 this.releaseNotes = data;
                 this.date = this.releaseNotes[0].date;
                 this.versionNumber = this.releaseNotes[0].version;
-            });
+            } catch (_) {
+                // Release notes are non-critical; silently skip on failure
+            }
         },
 
         async getSpecies()
@@ -765,6 +785,12 @@ export default
         this.$root.$on('load_data_from_server', () => {
             this.handleLoadDataFromServer();
         });
+    },
+
+    beforeDestroy()
+    {
+        if (this.controller)
+            this.controller.abort();
     }
 }
 </script>

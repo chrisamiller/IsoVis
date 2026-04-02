@@ -378,8 +378,8 @@ Requires mainData object which is used here to update the relevant data other co
             <span>User isoforms:</span>
             <b-icon-sort-alpha-down v-if="orfs_ready" @click="sortIsoformsByAlpha()" aria-hidden="true" style="cursor: pointer;" v-b-tooltip.hover.window.top="'Sort isoforms by ascending transcript symbols / IDs'"></b-icon-sort-alpha-down>
             <b-icon-sort-alpha-down-alt v-if="orfs_ready" @click="sortIsoformsByAlpha(false)" aria-hidden="true" style="cursor: pointer;" v-b-tooltip.hover.window.top="'Sort isoforms by descending transcript symbols / IDs'"></b-icon-sort-alpha-down-alt>
-            <b-img v-if="orfs_ready && mainData.heatmapData" @click="sortIsoformsByMeanHeatmap()" style="width: 16px; height: 16px; cursor: pointer; background: linear-gradient(#1170aa, #fff8e6, #fc7d0b); display: inline-block; border: 0; border-style: none; overflow: visible; vertical-align: -0.15em;" v-b-tooltip.hover.window.top="'Sort isoforms by ascending mean heatmap values'"></b-img>
-            <b-img v-if="orfs_ready && mainData.heatmapData" @click="sortIsoformsByMeanHeatmap(false)" style="width: 16px; height: 16px; cursor: pointer; background: linear-gradient(#fc7d0b, #fff8e6, #1170aa); display: inline-block; overflow: visible; vertical-align: -0.15em;" v-b-tooltip.hover.window.top="'Sort isoforms by descending mean heatmap values'"></b-img>
+            <b-img v-if="mainData.heatmapData" @click="sortIsoformsByMeanHeatmap()" style="width: 16px; height: 16px; cursor: pointer; background: linear-gradient(#1170aa, #fff8e6, #fc7d0b); display: inline-block; border: 0; border-style: none; overflow: visible; vertical-align: -0.15em;" v-b-tooltip.hover.window.top="'Sort isoforms by ascending mean heatmap values'"></b-img>
+            <b-img v-if="mainData.heatmapData" @click="sortIsoformsByMeanHeatmap(false)" style="width: 16px; height: 16px; cursor: pointer; background: linear-gradient(#fc7d0b, #fff8e6, #1170aa); display: inline-block; overflow: visible; vertical-align: -0.15em;" v-b-tooltip.hover.window.top="'Sort isoforms by descending mean heatmap values'"></b-img>
         </b-col>
 
         <!-- Column 10.2: Nothing -->
@@ -2364,6 +2364,8 @@ export default
         // current use case - long read and short read data from the same samples
         swapHeatmap(state)
         {
+            if (!this.mainData.heatmap2Data)
+                return;
             this.alt_heatmap = state;
             let tmp = this.mainData.heatmap2Data;
             tmp.transcriptOrder = this.mainData.heatmapData.transcriptOrder;
@@ -3051,7 +3053,7 @@ export default
             if (!ascending)
                 shown_isoforms.reverse();
 
-            shown_isoforms.concat(no_mean_isoforms);
+            shown_isoforms = shown_isoforms.concat(no_mean_isoforms);
 
             this.transcriptIds = [];
             this.mainData.isoformData.isoformList = [];
@@ -3081,6 +3083,9 @@ export default
             let site_level_means = {};
             for (let site of this.siteOrder)
                 site_level_means[site] = [];
+
+            if (!this.mainData.rnaModifLevelData)
+                return;
 
             let all_values = this.mainData.rnaModifLevelData.export;
             for (let site of this.siteOrder)
@@ -3125,15 +3130,15 @@ export default
             if (!ascending)
                 shown_sites.reverse();
 
-            shown_sites.concat(no_mean_sites);
+            shown_sites = shown_sites.concat(no_mean_sites);
 
             this.siteOrder = [];
             this.site_data.siteOrder = [];
 
             for (let [ignored, site] of shown_sites)
             {
-                this.siteOrder.push(parseInt(site));
-                this.site_data.siteOrder.push(parseInt(site));
+                this.siteOrder.push(parseInt(site, 10));
+                this.site_data.siteOrder.push(parseInt(site, 10));
             }
 
             this.is_sorting_done = true;

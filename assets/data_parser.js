@@ -467,7 +467,7 @@ export class RNAModifSitesLevelData {
             if (gene !== this.gene)
                 continue;
 
-            let site = parseInt(entries[this.location_colnum]) + 1; // Deal with BED coordinates being 0-based instead of 1-based
+            let site = parseInt(entries[this.location_colnum], 10) + 1; // Deal with BED coordinates being 0-based instead of 1-based
             if (isNaN(site) || (site < 0) || (this.sites.indexOf(site) === -1))
                 continue;
 
@@ -2159,8 +2159,8 @@ class GFF3Line
             return;
         }
 
-        let range_begin = parseInt(line[3]);
-        let range_end = parseInt(line[4]);
+        let range_begin = parseInt(line[3], 10);
+        let range_end = parseInt(line[4], 10);
         let strand = line[6].trim();
         if (isNaN(range_begin) || isNaN(range_end) || ((strand !== '+') && (strand !== '-')))
         {
@@ -2228,8 +2228,8 @@ class GTFLine
             return;
         }
 
-        let range_begin = parseInt(line[3]);
-        let range_end = parseInt(line[4]);
+        let range_begin = parseInt(line[3], 10);
+        let range_end = parseInt(line[4], 10);
         let strand = line[6].trim();
         if (isNaN(range_begin) || isNaN(range_end) || ((strand !== '+') && (strand !== '-')))
         {
@@ -2286,11 +2286,11 @@ class BEDLine
             return;
         }
 
-        let start = parseInt(line[1]) + 1;
-        let end = parseInt(line[2]);
-        let orf_start = parseInt(line[6]) + 1;
-        let orf_end = parseInt(line[7]);
-        let blockCount = parseInt(line[9]);
+        let start = parseInt(line[1], 10) + 1;
+        let end = parseInt(line[2], 10);
+        let orf_start = parseInt(line[6], 10) + 1;
+        let orf_end = parseInt(line[7], 10);
+        let blockCount = parseInt(line[9], 10);
         let strand = line[5].trim();
         if (isNaN(start) || isNaN(end) || isNaN(blockCount) || (blockCount === 0) || ((strand !== '+') && (strand !== '-')))
         {
@@ -2338,7 +2338,7 @@ class BEDLine
         let output = [];
         for (let val of vals)
         {
-            let intVal = parseInt(val);
+            let intVal = parseInt(val, 10);
             if (Number.isInteger(intVal))
                 output.push(intVal);
         }
@@ -2371,8 +2371,8 @@ class ReducedBEDLine
             return;
         }
 
-        let start = parseInt(line[1]) + 1;
-        let end = parseInt(line[2]);
+        let start = parseInt(line[1], 10) + 1;
+        let end = parseInt(line[2], 10);
         let strand = line[5].trim();
         if (isNaN(start) || isNaN(end) || ((strand !== '+') && (strand !== '-')))
         {
@@ -2383,8 +2383,8 @@ class ReducedBEDLine
         // If both the thick start and thick end columns are included, check them
         if (num_columns >= 8)
         {
-            let orf_start = parseInt(line[6]) + 1;
-            let orf_end = parseInt(line[7]);
+            let orf_start = parseInt(line[6], 10) + 1;
+            let orf_end = parseInt(line[7], 10);
             if (!isNaN(orf_start) && !isNaN(orf_end) && (orf_start < orf_end))
             {
                 this.orf_start = orf_start;
@@ -2437,8 +2437,8 @@ class MinimalBEDLine
             return;
         }
 
-        let start = parseInt(line[1]) + 1;
-        let end = parseInt(line[2]);
+        let start = parseInt(line[1], 10) + 1;
+        let end = parseInt(line[2], 10);
         if (isNaN(start) || isNaN(end))
         {
             this.valid = false;
@@ -2487,8 +2487,8 @@ class RNAModifSitesBEDLine
             return;
         }
 
-        let start = parseInt(line[1]) + 1;
-        let end = parseInt(line[2]);
+        let start = parseInt(line[1], 10) + 1;
+        let end = parseInt(line[2], 10);
         if (isNaN(start) || isNaN(end) || (start !== end))
         {
             this.valid = false;
@@ -2523,7 +2523,7 @@ class Isoform {
         this.transcriptID = label;
         this.exons = {}
         for (let key of Object.keys(exons)) {
-            key = parseInt(key);
+            key = parseInt(key, 10);
             if (!isNaN(key)) {
                 this.exons[key] = exons[key];
             }
