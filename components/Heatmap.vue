@@ -37,11 +37,11 @@ export default {
             let colour = {
                 heatmapLow: '#fff7fb',
                 heatmapMid: '#67a9cf',
-                heatmapHigh: '#016c59', 
+                heatmapHigh: '#016c59',
                 // heatmapLow: '#1170aa', // '#962705',
                 // heatmapMid: '#fff8e6', // 'white',
                 // heatmapHigh: '#fc7d0b',
-                invalid: '#fff7fb'
+                invalid: '#e0e0e0'
             };
             
             // Clear target element of content
@@ -221,7 +221,7 @@ export default {
                 heatmapLow: '#fff7fb',
                 heatmapMid: '#67a9cf',
                 heatmapHigh: '#016c59',
-                invalid: '#fff7fb'
+                invalid: '#e0e0e0'
             };
 
             if (!this.show_isoform_heatmap)

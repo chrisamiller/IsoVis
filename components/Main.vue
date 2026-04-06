@@ -46,6 +46,9 @@ Requires mainData object which is used here to update the relevant data other co
             <b-dropdown-item v-if="orfs_ready && !no_user_orfs && show_stack" @click="setShowUserOrfs(!show_user_orfs)" v-b-tooltip.hover.right="'Display ORFs from the uploaded isoform stack data'">
                 User ORFs<b-icon-check v-if="show_user_orfs" variant="success"></b-icon-check>
             </b-dropdown-item>
+            <b-dropdown-item v-if="heatmap_data_exists && show_stack" @click="setShowUnexpressed(!show_unexpressed)" v-b-tooltip.hover.right="'When checked, transcripts with zero or missing expression across all samples are shown'">
+                Show unexpressed transcripts<b-icon-check v-if="show_unexpressed" variant="success"></b-icon-check>
+            </b-dropdown-item>
             <b-dropdown-item v-if="(canon_disabled || protein_disabled || protein_ready) && !is_other_isoforms_button_clicked" @click="getAllOtherIsoforms()" v-b-tooltip.hover.right="'Load all other Ensembl isoforms of the displayed gene that are not present in the uploaded isoform data (externally sourced)'">
                 Load all other Ensembl isoforms (beta)
             </b-dropdown-item>
@@ -549,6 +552,7 @@ export default
             show_protein_labels: false,
             show_orfs: true,
             show_user_orfs: false,
+            show_unexpressed: false,
 
             show_splices: false,
             show_constitutive_junctions: false,
@@ -642,6 +646,15 @@ export default
                     data.push(isoform.transcriptID);
             }
             return data;
+        },
+
+        expressedTranscriptIds()
+        {
+            if (!this.mainData.heatmapData || !this.mainData.heatmapData.export) return null;
+            const expressed = new Set();
+            for (const entry of this.mainData.heatmapData.export)
+                if (entry.value > 0) expressed.add(entry.transcript);
+            return expressed;
         },
 
         otherIsoformList()
@@ -2352,6 +2365,56 @@ export default
             this.resizePage();
         },
 
+        setShowUnexpressed(val)
+        {
+            const expressed = this.expressedTranscriptIds;
+            if (!expressed) { this.show_unexpressed = val; return; }
+
+            const allIsoforms = this.mainData.isoformData.allIsoforms;
+
+            if (!val)
+            {
+                // Hide unexpressed: filter transcriptIds to only those with expression
+                const filteredIds = this.transcriptIds.filter(id => expressed.has(id));
+                const newIsoformList = [];
+                for (const id of filteredIds)
+                {
+                    const iso = allIsoforms.find(iso => iso.transcriptID === id);
+                    if (iso) newIsoformList.push(JSON.parse(JSON.stringify(iso)));
+                }
+                this.transcriptIds = filteredIds;
+                this.mainData.isoformData.isoformList = newIsoformList;
+                this.mainData.isoformData.transcriptOrder = [...filteredIds];
+                if (this.mainData.heatmapData && this.mainData.heatmapData.transcriptOrder)
+                    this.mainData.heatmapData.transcriptOrder = [...filteredIds];
+            }
+            else
+            {
+                // Show all: add back any unexpressed transcripts that were filtered out
+                const currentSet = new Set(this.transcriptIds);
+                const mergedIds = [...this.transcriptIds];
+                for (const iso of allIsoforms)
+                {
+                    if (!currentSet.has(iso.transcriptID) && !expressed.has(iso.transcriptID))
+                        mergedIds.push(iso.transcriptID);
+                }
+                const newIsoformList = [];
+                for (const id of mergedIds)
+                {
+                    const iso = allIsoforms.find(i => i.transcriptID === id);
+                    if (iso) newIsoformList.push(JSON.parse(JSON.stringify(iso)));
+                }
+                this.transcriptIds = mergedIds;
+                this.mainData.isoformData.isoformList = newIsoformList;
+                this.mainData.isoformData.transcriptOrder = [...mergedIds];
+                if (this.mainData.heatmapData && this.mainData.heatmapData.transcriptOrder)
+                    this.mainData.heatmapData.transcriptOrder = [...mergedIds];
+            }
+
+            this.show_unexpressed = val;
+            this.$nextTick(() => this.resizePage());
+        },
+
         setLogTransform(state)
         {
             this.isoform_heatmap_log_transform = state;
@@ -3333,6 +3396,7 @@ export default
 
             this.show_splices = false;
             this.show_constitutive_junctions = false;
+            this.show_unexpressed = false;
 
             this.show_stack = true;
             this.show_heatmap_column = false;
@@ -3424,7 +3488,10 @@ export default
             }
 
             if (this.mainData.heatmapData)
+            {
                 this.setShowIsoformHeatmap(true);
+                this.setShowUnexpressed(false);
+            }
 
             if (this.mainData.heatmapData || (!this.rna_modif_disabled && this.mainData.rnaModifLevelData))
             {
