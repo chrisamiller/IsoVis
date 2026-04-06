@@ -2538,6 +2538,7 @@ class Isoform {
         this.length = Math.abs(this.end - this.start);
         this.orf = [];
         this.orf_known = false;
+        this.orf_invalid = false;
 
         this.user_orf = [];
         if (exons.user_orf && (exons.user_orf.length !== 0))

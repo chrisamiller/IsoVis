@@ -2585,6 +2585,7 @@ export default
         async getORFs()
         {
             let ORFs = {};
+            let nonCodingIds = new Set();
             let isoforms = this.mainData.isoformData.isoformList;
 
             if (!isoforms)
@@ -2619,16 +2620,24 @@ export default
                     }
                     ORFs[isoform.transcriptID] = ORFExons;
                 }
+                else
+                {
+                    // map/cds failed — check if transcript is known but non-coding
+                    let lookupUrl = `https://${this.is_use_grch37 ? "grch37." : ""}rest.ensembl.org/lookup/id/${transcript_id}?content-type=application/json`;
+                    let lookup = await this.fetchJSON(lookupUrl);
+                    if (lookup && !lookup.error && lookup.biotype && lookup.biotype !== 'protein_coding')
+                        nonCodingIds.add(transcript_id);
+                }
             }
 
-            this.updateORFs(ORFs);
+            this.updateORFs(ORFs, nonCodingIds);
         },
 
         /**
          * Update isoformData.isoformList and canonData.isoformList with the fetched ORFs.
          * @param {object} ORFs A dictionary listing the ORFs of each transcript with an Ensembl ID
          */
-        updateORFs(ORFs)
+        updateORFs(ORFs, nonCodingIds)
         {
             let are_user_orfs_present = false;
 
@@ -2641,8 +2650,20 @@ export default
 
                     if (isoform.transcriptID in ORFs)
                     {
-                        isoform.orf = ORFs[isoform.transcriptID];
-                        isoform.orf_known = true;
+                        const blocks = ORFs[isoform.transcriptID];
+                        const valid = blocks.every(([os, oe]) =>
+                            isoform.exonRanges.some(([es, ee]) => es <= os && oe <= ee)
+                        );
+                        if (valid) {
+                            isoform.orf = blocks;
+                            isoform.orf_known = true;
+                        } else {
+                            isoform.orf_invalid = true;
+                        }
+                    }
+                    else if (nonCodingIds && nonCodingIds.has(isoform.transcriptID))
+                    {
+                        isoform.orf_invalid = true;
                     }
 
                     are_user_orfs_present ||= (isoform.user_orf && isoform.user_orf.length !== 0);
@@ -2658,8 +2679,20 @@ export default
 
                     if (isoform.transcriptID in ORFs)
                     {
-                        isoform.orf = ORFs[isoform.transcriptID];
-                        isoform.orf_known = true;
+                        const blocks = ORFs[isoform.transcriptID];
+                        const valid = blocks.every(([os, oe]) =>
+                            isoform.exonRanges.some(([es, ee]) => es <= os && oe <= ee)
+                        );
+                        if (valid) {
+                            isoform.orf = blocks;
+                            isoform.orf_known = true;
+                        } else {
+                            isoform.orf_invalid = true;
+                        }
+                    }
+                    else if (nonCodingIds && nonCodingIds.has(isoform.transcriptID))
+                    {
+                        isoform.orf_invalid = true;
                     }
                 }
             }
@@ -2670,9 +2703,21 @@ export default
                 {
                     if (isoform.transcriptID in ORFs)
                     {
-                        isoform.orf = ORFs[isoform.transcriptID];
-                        isoform.orf_known = true;
-                        this.mainData.canonData.orf = ORFs[isoform.transcriptID];
+                        const blocks = ORFs[isoform.transcriptID];
+                        const valid = blocks.every(([os, oe]) =>
+                            isoform.exonRanges.some(([es, ee]) => es <= os && oe <= ee)
+                        );
+                        if (valid) {
+                            isoform.orf = blocks;
+                            isoform.orf_known = true;
+                            this.mainData.canonData.orf = blocks;
+                        } else {
+                            isoform.orf_invalid = true;
+                        }
+                    }
+                    else if (nonCodingIds && nonCodingIds.has(isoform.transcriptID))
+                    {
+                        isoform.orf_invalid = true;
                     }
                 }
             }
