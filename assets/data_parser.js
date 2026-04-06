@@ -2537,6 +2537,7 @@ class Isoform {
         this.end = this.strand == '+' ? this.exonRanges[this.exonRanges.length - 1][1] : this.exonRanges[0][0];
         this.length = Math.abs(this.end - this.start);
         this.orf = [];
+        this.orf_known = false;
 
         this.user_orf = [];
         if (exons.user_orf && (exons.user_orf.length !== 0))

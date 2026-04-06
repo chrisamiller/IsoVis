@@ -497,8 +497,10 @@ export default {
                     const sc  = self.sqantiData.cats[sq[0]];
                     const orf = sq[3] !== null ? sq[3] : 'N/A';
                     const nmd = sq[4] ? 'TRUE' : 'FALSE';
-                    sqanti_text = `\r\nStructural category: ${sc}\r\ncDNA length: ${sq[1]}\r\nNum exons: ${sq[2]}\r\nORF length: ${orf}\r\nPredicted NMD: ${nmd}`;
-                    sqanti_html = `Structural category: ${sc}<br>cDNA length: ${sq[1]}<br>Num exons: ${sq[2]}<br>ORF length: ${orf}<br>Predicted NMD: ${nmd}<br>`;
+                    const isoform = self.isoformList ? self.isoformList.find(iso => iso.transcriptID === shown_transcript_id) : null;
+                    const orf_label = (isoform && isoform.orf_known) ? 'Known ORF length' : 'Predicted ORF length';
+                    sqanti_text = `\r\nStructural category: ${sc}\r\ncDNA length: ${sq[1]}\r\nNum exons: ${sq[2]}\r\n${orf_label}: ${orf}\r\nPredicted NMD: ${nmd}`;
+                    sqanti_html = `Structural category: ${sc}<br>cDNA length: ${sq[1]}<br>Num exons: ${sq[2]}<br>${orf_label}: ${orf}<br>Predicted NMD: ${nmd}<br>`;
                 }
 
                 let tooltip_text = `Transcript: ${shown_transcript_id}\r\nExon #${shown_exon_number} / ${shown_total_exons}\r\nExonic region #${shown_exonic_region_number} / ${shown_total_exonic_regions}\r\nExon range: ${shown_exon_start} - ${shown_exon_end}${sqanti_text}`;

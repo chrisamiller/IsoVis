@@ -547,7 +547,7 @@ export default
             show_domains: true,
             show_motifs: true,
             show_protein_labels: false,
-            show_orfs: false,
+            show_orfs: true,
             show_user_orfs: false,
 
             show_splices: false,
@@ -2642,6 +2642,7 @@ export default
                     if (isoform.transcriptID in ORFs)
                     {
                         isoform.orf = ORFs[isoform.transcriptID];
+                        isoform.orf_known = true;
                     }
 
                     are_user_orfs_present ||= (isoform.user_orf && isoform.user_orf.length !== 0);
@@ -2658,6 +2659,7 @@ export default
                     if (isoform.transcriptID in ORFs)
                     {
                         isoform.orf = ORFs[isoform.transcriptID];
+                        isoform.orf_known = true;
                     }
                 }
             }
@@ -2669,6 +2671,7 @@ export default
                     if (isoform.transcriptID in ORFs)
                     {
                         isoform.orf = ORFs[isoform.transcriptID];
+                        isoform.orf_known = true;
                         this.mainData.canonData.orf = ORFs[isoform.transcriptID];
                     }
                 }
@@ -2677,6 +2680,7 @@ export default
             this.orfs_ready = true;
             this.no_orfs = (Object.keys(ORFs).length === 0);
             this.no_user_orfs = !are_user_orfs_present;
+            this.resizePage();
         },
 
         /**
@@ -3345,7 +3349,7 @@ export default
             this.getTranscriptNames().then();
             this.buildHeatmapComponent();
 
-            this.setShowOrfs(false);
+            this.setShowOrfs(true);
             this.setShowUserOrfs(false);
             this.setShowDomains(true);
             this.setShowMotifs(true);
