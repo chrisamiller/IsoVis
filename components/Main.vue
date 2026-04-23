@@ -1003,8 +1003,9 @@ export default
                 let [isoform_heatmap_legend_width, isoform_heatmap_legend_height, isoform_heatmap_legend_symbol] = (this.isoform_heatmap_legend_visible) ? this.$refs.heatmapLegendComponent.buildHeatmapLegendSvg(true) : [-1, -1, null];
                 let [rna_modif_heatmap_width, rna_modif_heatmap_height, rna_modif_heatmap_symbol] = (this.rna_modification_levels_visible) ? this.$refs.RNAModifLevelsComponent.buildHeatmapSvg(true) : [-1, -1, null];
                 let [rna_modif_heatmap_legend_width, rna_modif_heatmap_legend_height, rna_modif_heatmap_legend_symbol] = (this.rna_modification_levels_legend_visible) ? this.$refs.RNAModifLevelsLegendComponent.buildHeatmapLegendSvg(true) : [-1, -1, null];
+                let [ns_color_scale_width, ns_color_scale_height, ns_color_scale_symbol] = (this.isoform_heatmap_visible && this.$refs.heatmapColorScaleComponent) ? this.$refs.heatmapColorScaleComponent.buildColorScaleSvg(true) : [-1, -1, null];
 
-                let second_column_width = Math.max(isoform_heatmap_width, isoform_heatmap_legend_width, rna_modif_heatmap_width, rna_modif_heatmap_legend_width);
+                let second_column_width = Math.max(isoform_heatmap_width, isoform_heatmap_legend_width, rna_modif_heatmap_width, rna_modif_heatmap_legend_width, ns_color_scale_width);
 
                 let svg = "";
                 let svg_width = 50 + longest_text_width + 50 + second_column_width + 50;
@@ -1149,8 +1150,19 @@ export default
                     svg += use("#isoform_heatmap_legend", 50 + longest_text_width + 50, y);
                 }
 
+                // Draw the heatmap color scale below the legend
+                let ns_color_scale_y = -1;
+                if (!((ns_color_scale_width === -1) || !ns_color_scale_symbol))
+                {
+                    ns_color_scale_y = y + Math.max(120, isoform_heatmap_legend_height) + 10;
+                    svg += put_in_symbol("ns_heatmap_color_scale", ns_color_scale_width, ns_color_scale_height, ns_color_scale_symbol);
+                    svg += use("#ns_heatmap_color_scale", 50 + longest_text_width + 50, ns_color_scale_y);
+                }
+
                 // Determine the SVG height
-                let svg_height = Math.ceil(Math.max(y + 120, y + isoform_heatmap_legend_height)) + 20;
+                let svg_height = (ns_color_scale_y !== -1)
+                    ? Math.ceil(ns_color_scale_y + ns_color_scale_height) + 20
+                    : Math.ceil(Math.max(y + 120, y + isoform_heatmap_legend_height)) + 20;
 
                 svg = put_in_svg(svg_width, svg_height, svg);
 
@@ -1194,8 +1206,9 @@ export default
             let [isoform_heatmap_legend_width, isoform_heatmap_legend_height, isoform_heatmap_legend_symbol] = (isoform_heatmap_shown) ? this.$refs.heatmapLegendComponent.buildHeatmapLegendSvg(true) : [-1, -1, null];
             let [rna_modif_heatmap_width, rna_modif_heatmap_height, rna_modif_heatmap_symbol] = (this.rna_modification_levels_visible) ? this.$refs.RNAModifLevelsComponent.buildHeatmapSvg(true) : [-1, -1, null];
             let [rna_modif_heatmap_legend_width, rna_modif_heatmap_legend_height, rna_modif_heatmap_legend_symbol] = (this.rna_modification_levels_legend_visible) ? this.$refs.RNAModifLevelsLegendComponent.buildHeatmapLegendSvg(true) : [-1, -1, null];
+            let [color_scale_width, color_scale_height, color_scale_symbol] = (isoform_heatmap_shown && this.$refs.heatmapColorScaleComponent) ? this.$refs.heatmapColorScaleComponent.buildColorScaleSvg(true) : [-1, -1, null];
 
-            let third_column_width = Math.max(-1, isoform_heatmap_width, isoform_heatmap_legend_width, rna_modif_heatmap_width, rna_modif_heatmap_legend_width);
+            let third_column_width = Math.max(-1, isoform_heatmap_width, isoform_heatmap_legend_width, rna_modif_heatmap_width, rna_modif_heatmap_legend_width, color_scale_width);
 
             let svg = "";
             let svg_width = 50 + longest_text_width + 50 + second_column_width + 50;
@@ -1340,6 +1353,8 @@ export default
                 y += 5;
             }
 
+            let color_scale_drawn = false;
+
             // The canonical isoform
             if (canon_shown)
             {
@@ -1353,6 +1368,14 @@ export default
                     max_y = Math.ceil(y - 4 + canon_track_height);
                     svg += put_in_symbol("canon_track", canon_track_width, canon_track_height, canon_track_symbol);
                     svg += use("#canon_track", 50 + longest_text_width + 50, y - 4);
+                }
+
+                // Draw the heatmap color scale in the third column at the same row as the canonical track
+                if (!((color_scale_width === -1) || !color_scale_symbol))
+                {
+                    svg += put_in_symbol("heatmap_color_scale", color_scale_width, color_scale_height, color_scale_symbol);
+                    svg += use("#heatmap_color_scale", 50 + longest_text_width + 50 + second_column_width + 50, y - 4);
+                    color_scale_drawn = true;
                 }
 
                 // Calculate the possible y-coordinate for drawing the canonical isoform text
@@ -1541,6 +1564,13 @@ export default
             {
                 svg += put_in_symbol("isoform_heatmap", isoform_heatmap_width, isoform_heatmap_height, isoform_heatmap_symbol);
                 svg += use("#isoform_heatmap", 50 + longest_text_width + 50 + second_column_width + 50, y);
+            }
+
+            // Fallback: draw color scale above the heatmap when the canonical track row was not available
+            if (!color_scale_drawn && !((color_scale_width === -1) || !color_scale_symbol))
+            {
+                svg += put_in_symbol("heatmap_color_scale", color_scale_width, color_scale_height, color_scale_symbol);
+                svg += use("#heatmap_color_scale", 50 + longest_text_width + 50 + second_column_width + 50, y - color_scale_height - 5);
             }
 
             let line_y = -1;

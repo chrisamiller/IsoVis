@@ -24,6 +24,68 @@ export default {
     },
 
     methods: {
+        buildColorScaleSvg(symbol = false) {
+            if (!this.show_isoform_heatmap) {
+                return symbol ? [-1, -1, null] : "";
+            }
+
+            let el = document.getElementById("heatmapDiv");
+            if (!(el && this.heatmapData)) {
+                return symbol ? [-1, -1, null] : "";
+            }
+
+            let padding = 16;
+            let canvas_width = Math.ceil(el.getBoundingClientRect().width - 2 * padding);
+            let bar_height = 15;
+            let text_height = 16;
+            let height = bar_height + text_height + 10;
+
+            let colour = {
+                heatmapLow: '#fff7fb',
+                heatmapMid: '#67a9cf',
+                heatmapHigh: '#016c59',
+            };
+
+            let legendWidth = canvas_width / 1.5;
+            let barLeft = (canvas_width - legendWidth) / 2;
+
+            let getLabel = (val) => {
+                if (val === undefined) return "NaN";
+                val = Number.isInteger(val) ? val.toFixed() : val.toFixed(2);
+                if (val.length > 1 && val.split('.')[1] == '00')
+                    val = val.split('.')[0];
+                if (val > 2) return String(Math.round(val));
+                return val;
+            };
+
+            let min = this.logTransform ? this.heatmapData.logMin : this.heatmapData.minValue;
+            let max = this.logTransform ? this.heatmapData.logMax : this.heatmapData.maxValue;
+            let mid = min + (max - min) / 2;
+            let text_y = bar_height + text_height;
+            let font_size = 13;
+
+            let grad_id = "heatmap_color_scale_grad";
+            let svg_content = linear_gradient(grad_id, [
+                ["0%", colour.heatmapLow],
+                ["50%", colour.heatmapMid],
+                ["100%", colour.heatmapHigh]
+            ]);
+
+            svg_content += `<rect x="${barLeft}" y="0" width="${legendWidth}" height="${bar_height}" fill="url(#${grad_id})"/>`;
+            svg_content += `<text x="${barLeft}" y="${text_y}" font-size="${font_size}" font-family="sans-serif" text-anchor="start">${getLabel(min)}</text>`;
+            svg_content += `<text x="${canvas_width / 2}" y="${text_y}" font-size="${font_size}" font-family="sans-serif" text-anchor="middle">${getLabel(mid)}</text>`;
+            svg_content += `<text x="${barLeft + legendWidth}" y="${text_y}" font-size="${font_size}" font-family="sans-serif" text-anchor="end">${getLabel(max)}</text>`;
+
+            if (this.logTransform) {
+                svg_content += `<text x="${barLeft + legendWidth + 5}" y="${Math.round(bar_height / 2 + 4)}" font-size="11" font-family="sans-serif" text-anchor="start">(log2)</text>`;
+            }
+
+            if (symbol)
+                return [canvas_width, height, svg_content];
+
+            return put_in_svg(canvas_width, height, svg_content);
+        },
+
         buildColorScale() {
             // Clear the space of any content
             d3.select('#heatmapColorScaleDiv').selectAll('*').remove();
